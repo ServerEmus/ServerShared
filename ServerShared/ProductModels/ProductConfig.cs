@@ -1,14 +1,16 @@
-﻿namespace ServerCore.Models.App;
+﻿using ServerCore.CommonModels;
 
-public class AppConfig
+namespace ServerCore.ProductModels;
+
+public class ProductConfig
 {
     [LiteDB.BsonId]
     public uint ProductId { get; set; }
     public uint ConfigVersion { get; set; } = 0;
     public uint DownloadVersion { get; set; } = 0;
     public string ProductName { get; set; } = string.Empty;
-    public Guid SpaceId { get; set; }
-    public Guid AppId { get; set; }
+    public Guid SpaceId { get; set; } = Guid.Empty;
+    public Guid AppId { get; set; } = Guid.Empty;
     public string Configuration { get; set; } = string.Empty;
     public string StoreConfiguration { get; set; } = string.Empty;
     public string StoreReference { get; set; } = string.Empty;
@@ -21,12 +23,6 @@ public class AppConfig
     public Uplay.Ownership.OwnedGame.Types.State ProductState { get; set; } = Uplay.Ownership.OwnedGame.Types.State.Playable;
 
     //  Custom Non Ownership related
-    public uint SessionMaxSize { get; set; } = 4;
-    public Richpresence RichPresence { get; set; } = new();
-
-    public class Richpresence
-    {
-        public uint PresenceId { get; set; } = 0;
-        public List<string> Available_KeyValues = [];
-    }
+    public RichPresence RichPresence { get; set; } = new();
+    public SessionMax SessionMax { get; set; } = new();
 }

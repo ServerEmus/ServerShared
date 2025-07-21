@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace ServerCore.Models;
+namespace ServerCore.CommonModels;
 
 public class ServerConfig
 {

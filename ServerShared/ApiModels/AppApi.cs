@@ -1,12 +1,16 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ServerCore.Models.App;
+namespace ServerCore.ApiModels;
 
+/// <summary>
+/// 
+/// </summary>
 public class AppApi
 {
+
     [LiteDB.BsonId]
     [JsonPropertyName("applicationId")]
-    public Guid ApplicationId { get; set; }
+    public Guid ApplicationId { get; set; } = Guid.Empty;
 
     [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
@@ -27,5 +31,5 @@ public class AppApi
     public string ReleaseDate { get; set; } = string.Empty;
 
     [JsonPropertyName("spaceId")]
-    public Guid SpaceId { get; set; }
+    public Guid SpaceId { get; set; }= Guid.Empty;
 }

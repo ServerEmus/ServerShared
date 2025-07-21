@@ -1,4 +1,4 @@
-﻿namespace ServerCore.Models.User;
+﻿namespace ServerCore.UserModels;
 
 public class UserLogin : UserBase
 {

@@ -1,6 +1,9 @@
-﻿namespace ServerCore.Models.App;
+﻿namespace ServerCore.ProductModels;
 
-public class AppBranches
+/// <summary>
+/// Connecting a <see cref="ProductId"> ot a specific <see cref="BranchId">
+/// </summary>
+public class ProductBranch
 {
     [LiteDB.BsonId]
     public uint ProductId { get; set; }
