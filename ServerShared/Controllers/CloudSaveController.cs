@@ -1,4 +1,5 @@
 using ServerShared.Database;
+using ServerShared.CommonModels;
 using ServerShared.UserModels;
 using System.Text;
 using System.Text.Json;
@@ -59,7 +60,7 @@ public static class CloudSaveController
     {
         if (!OwnershipController.IsOwned(UserId, productId))
             return false;
-        var cloudsave = GetCloudSave(UserId, itemId.Tostring(), productId);
+        var cloudsave = GetCloudSave(UserId, itemId.ToString(), productId);
         if (cloudsave == null)
             return false;
         DBManager.UserCloudSave.Delete(x => x.UserId == UserId && x.SaveId == itemId && x.UplayId == productId);
