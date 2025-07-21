@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using System.Reflection;
+using ServerShared.Interfaces;
 
 namespace ServerShared.Controller;
 

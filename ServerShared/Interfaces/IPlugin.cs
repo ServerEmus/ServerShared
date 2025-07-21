@@ -1,4 +1,4 @@
-﻿namespace ServerShared.Plugin;
+﻿namespace ServerShared.Interfaces;
 
 /// <summary>
 /// Interface for loading Server Plugins.
