@@ -3,7 +3,9 @@ using ServerShared.Database;
 using ServerShared.CommonModels;
 using ServerShared.ProductModels;
 using ServerShared.UserModels;
+using ServerShared.Extensions;
 using System.Text;
+using System.Text.Json;
 using Uplay.Ownership;
 
 namespace ServerShared.Controllers;
@@ -15,7 +17,7 @@ public static class OwnershipController
     {
         return 
             ServerConfig.Instance.Demux.GlobalOwnerShipCheck ||
-            DBManager.UserOwnershipBasic.GetOne(x=>x.UserId == UserId && OwnedGamesIds.Contains(ProductId)) != null;
+            DBManager.UserOwnershipBasic.GetOne(x=>x.UserId == UserId && x.OwnedGamesIds.Contains(ProductId)) != null;
     }
 
     public static OwnedGames GetOwnershipGames(Guid UserId, Dictionary<uint, uint> branches)
@@ -35,7 +37,7 @@ public static class OwnershipController
                 continue;
 
             uint branch = 0;
-            var branchList = DBManager.Branches.GetList(x => x.ProductId ==ow.ProductId);
+            var branchList = DBManager.Branch.GetList(x => x.ProductId ==ow.ProductId);
             if (branchList == null)
                 continue;
             if (branches.Count != 0)
@@ -225,28 +227,28 @@ public static class OwnershipController
         ByteString Signature = ByteString.CopyFrom(SignatureByte);
         var sigb64 = Signature.ToBase64();
         if (owbasic.OwnedGamesIds.Count > 30)
-            sigb64 = CompressB64.GetZstdB64(SignatureByte);
+            sigb64 = Base64CompressionExtension.GetZstdB64(SignatureByte);
 
-        var userId64 = CompressB64.GetZstdB64(UserId.ToString());
+        var userId64 = Base64CompressionExtension.GetZstdB64(UserId.ToString());
         return ByteString.CopyFrom(Encoding.UTF8.GetBytes(B64.ToB64(userId64 + "_OwnerSignature_" + sigb64)));
     }
 
     public static List<uint> FromOwnerSignature(string token)
     {
         List<uint> prodids = [];
-        var realtokenb = B64.FromB64(token);
-        var realtoken = B64.FromB64(realtokenb);
+        var realtokenb = token.FromB64();
+        var realtoken = realtokenb.FromB64();
         var tokensp = realtoken.Split("_OwnerSignature_");
         var userid64 = tokensp[0];
         var sig64 = tokensp[1];
-        var userId = B64.FromB64(CompressB64.GetUnZstdB64(Convert.FromBase64String(userid64)));
+        var userId = Base64CompressionExtension.GetUnZstdB64(Convert.FromBase64String(userid64)).FromB64();
         var owbasic = DBManager.UserOwnershipBasic.GetOne(x=>x.UserId == Guid.Parse(UserId));
 
         if (owbasic == null)
             return [];
         byte[] siglist = [];
         if (owbasic.OwnedGamesIds.Count > 30)
-            siglist = Convert.FromBase64String(CompressB64.GetUnZstdB64(Convert.FromBase64String(sig64)));
+            siglist = Convert.FromBase64String(Base64CompressionExtension.GetUnZstdB64(Convert.FromBase64String(sig64)));
         else
             siglist = Convert.FromBase64String(sig64);
         var blist = siglist.ToList();
@@ -268,8 +270,8 @@ public static class OwnershipController
         var ownership = DBManager.UserOwnership.GetOne(x=>x.UserId == UserId && x.ProductId == ProdId);
         if (ownership == null)
             return ByteString.CopyFrom(Encoding.UTF8.GetBytes("T3duZXJTaWduYXR1cmVfSXNGYWlsZWQ="));
-        var userId64 = CompressB64.GetZstdB64(UserId.ToString());
-        string ownershipb64 = CompressB64.GetZstdB64(JsonSerializer.Serialize(ownership));
-        return ByteString.CopyFrom(Encoding.UTF8.GetBytes(CompressB64.GetZstdB64(CompressB64.GetDeflateB64(userId64 + "_" + ownershipb64))));
+        var userId64 = Base64CompressionExtension.GetZstdB64(UserId.ToString());
+        string ownershipb64 = Base64CompressionExtension.GetZstdB64(JsonSerializer.Serialize(ownership));
+        return ByteString.CopyFrom(Encoding.UTF8.GetBytes(Base64CompressionExtension.GetZstdB64(Base64CompressionExtension.GetDeflateB64(userId64 + "_" + ownershipb64))));
     }
 }
