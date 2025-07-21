@@ -1,4 +1,4 @@
-namespace ServerCore.CommonModels;
+namespace ServerShared.CommonModels;
 
 public class SessionMax
 {

@@ -1,4 +1,4 @@
-﻿namespace ServerCore.UserModels;
+﻿namespace ServerShared.UserModels;
 
 public class UserFriend : UserBase
 {

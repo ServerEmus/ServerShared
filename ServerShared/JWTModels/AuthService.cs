@@ -1,4 +1,4 @@
-namespace ServerCore.JWTModels;
+namespace ServerShared.JWTModels;
 
 public class AuthService : BaseJWT
 {

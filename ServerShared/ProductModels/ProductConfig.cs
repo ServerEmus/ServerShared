@@ -1,6 +1,6 @@
-﻿using ServerCore.CommonModels;
+﻿using ServerShared.CommonModels;
 
-namespace ServerCore.ProductModels;
+namespace ServerShared.ProductModels;
 
 public class ProductConfig
 {

@@ -1,8 +1,8 @@
-﻿using ServerCore.ApiModels;
-using ServerCore.AuthModels;
-using ServerCore.CommonModels;
-using ServerCore.ProductModels;
-using ServerCore.UserModels;
+﻿using ServerShared.ApiModels;
+using ServerShared.AuthModels;
+using ServerShared.CommonModels;
+using ServerShared.ProductModels;
+using ServerShared.UserModels;
 
 namespace ServerShared.Database;
 
@@ -13,7 +13,7 @@ public static class DBManager
 {
 #region API
     /// <summary>
-    /// Database Connection for <see cref="ServerCore.Models.App.AppApi"/>.
+    /// Database Connection for <see cref="ServerShared.Models.App.AppApi"/>.
     /// </summary>
     public static DataBaseConnection<AppApi> AppAPI { get; }
 #endregion

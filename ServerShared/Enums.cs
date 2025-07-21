@@ -1,4 +1,4 @@
-﻿namespace ServerCore;
+﻿namespace ServerShared;
 
 public enum TokenType
 {

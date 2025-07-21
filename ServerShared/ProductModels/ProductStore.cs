@@ -1,4 +1,4 @@
-namespace ServerCore.ProductModels;
+namespace ServerShared.ProductModels;
 
 public class ProductStore
 {

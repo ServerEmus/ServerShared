@@ -1,4 +1,4 @@
-﻿namespace ServerCore.AuthModels;
+﻿namespace ServerShared.AuthModels;
 
 public class CurrentToken
 {

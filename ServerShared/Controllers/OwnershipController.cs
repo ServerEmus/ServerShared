@@ -1,8 +1,8 @@
 using Google.Protobuf;
 using ServerShared.Database;
+using ServerShared.CommonModels;
 using ServerShared.ProductModels;
 using ServerShared.UserModels;
-using SharedLib;
 using System.Text;
 using Uplay.Ownership;
 
