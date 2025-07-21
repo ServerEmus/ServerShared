@@ -1,6 +1,6 @@
-﻿namespace ServerCore.Models.Auth;
+﻿namespace ServerCore.AuthModels;
 
-public class AuthModels
+public class CurrentToken
 {
     [LiteDB.BsonId]
     public Guid UserId { get; set; }
