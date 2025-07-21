@@ -230,7 +230,7 @@ public static class OwnershipController
             sigb64 = Base64CompressionExtension.GetZstdB64(SignatureByte);
 
         var userId64 = Base64CompressionExtension.GetZstdB64(UserId.ToString());
-        return ByteString.CopyFrom(Encoding.UTF8.GetBytes(B64.ToB64(userId64 + "_OwnerSignature_" + sigb64)));
+        return ByteString.CopyFrom(Encoding.UTF8.GetBytes((userId64 + "_OwnerSignature_" + sigb64).ToB64()));
     }
 
     public static List<uint> FromOwnerSignature(string token)
@@ -242,7 +242,7 @@ public static class OwnershipController
         var userid64 = tokensp[0];
         var sig64 = tokensp[1];
         var userId = Base64CompressionExtension.GetUnZstdB64(Convert.FromBase64String(userid64)).FromB64();
-        var owbasic = DBManager.UserOwnershipBasic.GetOne(x=>x.UserId == Guid.Parse(UserId));
+        var owbasic = DBManager.UserOwnershipBasic.GetOne(x=>x.UserId == Guid.Parse(userId));
 
         if (owbasic == null)
             return [];
