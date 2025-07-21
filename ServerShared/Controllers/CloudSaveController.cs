@@ -60,8 +60,8 @@ public static class CloudSaveController
     {
         if (!OwnershipController.IsOwned(UserId, productId))
             return false;
-        var cloudsave = GetCloudSave(UserId, itemId.ToString(), productId);
-        if (cloudsave == null)
+        var cloudSave = GetCloudSave(UserId, itemId.ToString(), productId);
+        if (cloudSave == null)
             return false;
         DBManager.UserCloudSave.Delete(x => x.UserId == UserId && x.SaveId == itemId && x.UplayId == productId);
         var path = Path.Combine(ServerConfig.Instance.Demux.ServerFilesPath, cloudSave.UserId.ToString(), cloudSave.UplayId.ToString(), cloudSave.SaveName);
