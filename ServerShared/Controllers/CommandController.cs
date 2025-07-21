@@ -18,7 +18,7 @@ public static class CommandController
         if (Commands.TryAdd(commandName, action))
         {
             if (cannotRemove)
-                CannotRemoveCommand.Add(cannotRemove);
+                CannotRemoveCommand.Add(commandName);
             return true;
         }
         return false;
