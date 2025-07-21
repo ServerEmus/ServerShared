@@ -1,43 +1,43 @@
 using ServerShared.Database;
 using ServerShared.UserModels;
 using System.Text;
+using System.Text.Json;
 
 namespace ServerShared.Controllers;
-/*
+
 public static class CloudSaveController
 {
     public static byte[] GetSave(Guid UserId, string itemOrName, uint productId, out bool UseBinaryOctetStream)
     {
         UseBinaryOctetStream = false;
-        byte[] emptyBytes = [];
         if (!OwnershipController.IsOwned(UserId, productId))
-            return emptyBytes;
+            return [];
         if (itemOrName.Contains("all"))
         {
-            var cloudsaves = DBUser.GetList<UserCloudSave>(UserId, x => x.UplayId == productId);
-
+            var cloudsaves = DBManager.UserCloudSave.GetList(x => x.UserId == UserId && x.UplayId == productId);
             if (cloudsaves == null)
             {
                 cloudsaves = new();
-
-                DBUser.Add(new UserCloudSave()
+                UserCloudSave save = new()
                 {
                     UplayId = productId,
                     UserId = UserId
-                });
-
+                };
+                DBManager.UserCloudSave.Create(save);
+                cloudsaves.Add(save);
             }
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cloudsaves));
+            return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(cloudsaves));
         }
         else
         {
             var cloudSave = GetCloudSave(UserId, itemOrName, productId);
             if (cloudSave == null)
-                return emptyBytes;
-            var path = $"{ServerConfig.Instance.Demux.ServerFilesPath}/{cloudSave.UserId}/{cloudSave.UplayId}/{cloudSave.SaveName}";
-            emptyBytes = File.ReadAllBytes(path);
+                return [];
+            var path = Path.Combine(ServerConfig.Instance.Demux.ServerFilesPath, cloudSave.UserId.ToString(), cloudSave.UplayId.ToString(), cloudSave.SaveName);
+            if (!File.Exists(path))
+                return [];
             UseBinaryOctetStream = true;
-            return emptyBytes;
+            return File.ReadAllBytes(path);
         }
     }
 
@@ -48,11 +48,9 @@ public static class CloudSaveController
         var cloudSave = GetCloudSave(UserId, itemOrName, productId);
         if (cloudSave == null)
             return false;
-        var path = $"{ServerConfig.Instance.Demux.ServerFilesPath}/{cloudSave.UserId}/{cloudSave.UplayId}/{cloudSave.SaveName}";
+        var path = Path.Combine(ServerConfig.Instance.Demux.ServerFilesPath, cloudSave.UserId.ToString(), cloudSave.UplayId.ToString(), cloudSave.SaveName);
         if (!Directory.Exists(Path.GetDirectoryName(path)))
-        {
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        }
         File.WriteAllBytes(path, body);
         return true;
     }
@@ -61,11 +59,11 @@ public static class CloudSaveController
     {
         if (!OwnershipController.IsOwned(UserId, productId))
             return false;
-        var cloudsave = DBUser.Get<UserCloudSave>(UserId, x => x.SaveId == itemId && x.UplayId == productId);
+        var cloudsave = GetCloudSave(UserId, itemId.Tostring(), productId);
         if (cloudsave == null)
             return false;
-        DBUser.Delete<UserCloudSave>(UserId, x => x.SaveId == itemId && x.UplayId == productId);
-        var path = $"{ServerConfig.Instance.Demux.ServerFilesPath}/{cloudsave.UserId}/{cloudsave.UplayId}/{cloudsave.SaveName}";
+        DBManager.UserCloudSave.Delete(x => x.UserId == UserId && x.SaveId == itemId && x.UplayId == productId);
+        var path = Path.Combine(ServerConfig.Instance.Demux.ServerFilesPath, cloudSave.UserId.ToString(), cloudSave.UplayId.ToString(), cloudSave.SaveName);
         if (Directory.Exists(Path.GetDirectoryName(path)) && File.Exists(path))
         {
             File.Delete(path);
@@ -79,39 +77,36 @@ public static class CloudSaveController
         UserCloudSave? cloudsave = null;
         if (itemOrName.Contains("savegame"))
         {
-            cloudsave = DBUser.Get<UserCloudSave>(UserId, x => x.SaveName == itemOrName && x.UplayId == productId);
+            cloudsave = DBManager.UserCloudSave.GetOne(x => x.UserId == UserId && x.SaveName == itemOrName && x.UplayId == productId);
             if (cloudsave == null)
             {
-                cloudsave = new UserCloudSave()
+                cloudsave = new()
                 {
                     UserId = UserId,
                     UplayId = productId,
                     SaveId = 0,
                     SaveName = itemOrName
                 };
-                DBUser.Add(cloudsave);
+                DBManager.UserCloudSave.Create(cloudsave);
             }
         }
         else
         {
             if (!uint.TryParse(itemOrName, out uint itemId))
-            {
                 return cloudsave;
-            }
-            cloudsave = DBUser.Get<UserCloudSave>(UserId, x => x.SaveId == itemId && x.UplayId == productId);
+            cloudsave = DBManager.UserCloudSave.GetOne(x => x.UserId == UserId && x.SaveId == itemId && x.UplayId == productId);
             if (cloudsave == null)
             {
-                cloudsave = new UserCloudSave()
+                cloudsave = new()
                 {
                     UserId = UserId,
                     UplayId = productId,
                     SaveId = itemId,
                     SaveName = itemId + ".savegame"
                 };
-                DBUser.Add(cloudsave);
+                DBManager.UserCloudSave.Create(cloudsave);
             }
         }
         return cloudsave;
     }
 }
-*/
