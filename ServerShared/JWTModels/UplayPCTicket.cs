@@ -1,7 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace ServerShared.JWTModels;
 
 public class UplayPCTicket : BaseJWT
 {
-    public int uplay_id { get; set; }
-    public int platform { get; set; }
+    [JsonPropertyName("uplay_id")]
+    public int UplayId { get; set; }
+
+    [JsonPropertyName("platform")]
+    public int Platform { get; set; }
 }

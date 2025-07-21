@@ -1,8 +1,6 @@
 using Google.Protobuf;
 using ServerShared.Database;
 using ServerShared.CommonModels;
-using ServerShared.ProductModels;
-using ServerShared.UserModels;
 using ServerShared.Extensions;
 using System.Text;
 using System.Text.Json;
@@ -17,7 +15,7 @@ public static class OwnershipController
     {
         return 
             ServerConfig.Instance.Demux.GlobalOwnerShipCheck ||
-            DBManager.UserOwnershipBasic.GetOne(x=>x.UserId == UserId && x.OwnedGamesIds.Contains(ProductId)) != null;
+            DBManager.UserOwnershipBasic.Exists(x=>x.UserId == UserId && x.OwnedGamesIds.Contains(ProductId));
     }
 
     public static OwnedGames GetOwnershipGames(Guid UserId, Dictionary<uint, uint> branches)
@@ -97,7 +95,7 @@ public static class OwnershipController
         if (File.Exists(conf))
             app.Configuration = File.ReadAllText(conf);
 
-        var og = new OwnedGame()
+        OwnedGame og = new()
         {
             PendingKeystorageOwnership = false,
             ProductId = ow.ProductId,
@@ -194,7 +192,7 @@ public static class OwnershipController
                 Staging = false,
                 ProductState = (OwnedGame.Types.State)games.State,
                 SpaceId = Guid.Parse(games.UbiservicesSpaceId),
-                AppFlags = [AppFlags.Downloadable, AppFlags.Playable],
+                AppFlags = AppFlags.Downloadable | AppFlags.Playable,
                 AppId = Guid.Parse(games.UbiservicesSpaceId),
                 Associations = [.. games.ProductAssociations],
                 Configuration = $"{games.ProductId}.yml",

@@ -1,6 +1,4 @@
-﻿using ServerShared.CommonModels;
-
-namespace ServerShared.ProductModels;
+﻿namespace ServerShared.ProductModels;
 
 public class ProductConfig
 {
@@ -17,12 +15,12 @@ public class ProductConfig
     public string GameCode { get; set; } = string.Empty;
     public bool Staging { get; set; } = false;
     public List<uint> Associations { get; set; } = [];
-    public List<AppFlags> AppFlags { get; set; } = [];
+    public AppFlags AppFlags { get; set; } = AppFlags.Downloadable | AppFlags.Playable;
     public Uplay.Ownership.GetUplayPCTicketReq.Types.Platform Platform { get; set; } = Uplay.Ownership.GetUplayPCTicketReq.Types.Platform.Normal;
     public Uplay.Ownership.OwnedGame.Types.ProductType ProductType { get; set; } = Uplay.Ownership.OwnedGame.Types.ProductType.Game;
     public Uplay.Ownership.OwnedGame.Types.State ProductState { get; set; } = Uplay.Ownership.OwnedGame.Types.State.Playable;
 
     //  Custom Non Ownership related
-    public RichPresence RichPresence { get; set; } = new();
-    public SessionMax SessionMax { get; set; } = new();
+    public List<string> AvailableRichPresenceKeys = [];
+    public uint SessionMaxSize { get; set; } = 4;
 }

@@ -2,12 +2,8 @@
 
 namespace ServerShared.ApiModels;
 
-/// <summary>
-/// 
-/// </summary>
 public class AppApi
 {
-
     [LiteDB.BsonId]
     [JsonPropertyName("applicationId")]
     public Guid ApplicationId { get; set; } = Guid.Empty;
@@ -31,5 +27,5 @@ public class AppApi
     public string ReleaseDate { get; set; } = string.Empty;
 
     [JsonPropertyName("spaceId")]
-    public Guid SpaceId { get; set; }= Guid.Empty;
+    public Guid SpaceId { get; set; } = Guid.Empty;
 }

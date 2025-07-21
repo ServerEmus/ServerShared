@@ -2,7 +2,7 @@
 using System.Reflection;
 using ServerShared.Interfaces;
 
-namespace ServerShared.Controller;
+namespace ServerShared.Controllers;
 
 /// <summary>
 /// Managing <see cref="IPlugin"/>. (Load, Unload, Calls)

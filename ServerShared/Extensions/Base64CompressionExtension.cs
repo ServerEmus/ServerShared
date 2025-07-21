@@ -6,6 +6,9 @@ using ZstdNet;
 
 namespace ServerShared.Extensions;
 
+/// <summary>
+/// Extension for Compressing with <see cref="string"/>.
+/// </summary>
 public static class Base64CompressionExtension
 {
     #region ZSTD

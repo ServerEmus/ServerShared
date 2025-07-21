@@ -1,7 +1,7 @@
 ﻿namespace ServerShared.ProductModels;
 
 /// <summary>
-/// Connecting a <see cref="ProductId" /> ot a specific <see cref="BranchId" />.
+/// Connecting a <see cref="ProductId" /> to a specific <see cref="BranchId" />.
 /// </summary>
 public class ProductBranch
 {

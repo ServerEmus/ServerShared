@@ -1,7 +1,7 @@
 using ServerShared.Database;
 using ServerShared.UserModels;
 
-namespace ServerShared.Controller;
+namespace ServerShared.Controllers;
 
 public static class UserCommonController
 {
@@ -15,7 +15,7 @@ public static class UserCommonController
 
     public static bool IsUserExist(Guid UserId)
     {
-        return DBManager.UserCommon.GetOne(x => x.UserId == UserId) != null;
+        return DBManager.UserCommon.Exists(x => x.UserId == UserId);
     }
 
     public static void RemoveFromFriends(Guid UserId, Guid FriendId)

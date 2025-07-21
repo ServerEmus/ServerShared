@@ -1,15 +1,14 @@
 using ServerShared.Database;
 using ServerShared.UserModels;
 
-namespace ServerShared.Controller;
+namespace ServerShared.Controllers;
 
 public static class UserExtraController
 {
     public static void UplayFriendsGameParseToUser(Guid UserId, Uplay.Friends.Game game)
     {
         UserActivity? activity = DBManager.UserActivity.GetOne(x => x.UserId == UserId);
-        if (activity == null)
-            activity = new()
+        activity ??= new()
             {
                 UserId = UserId
             };
@@ -20,8 +19,7 @@ public static class UserExtraController
         if (game.GameSession == null)
             return;
         UserGameSession? session = DBManager.UserGameSession.GetOne(x => x.UserId == UserId);
-        if (session == null)
-            session = new()
+        session ??= new()
             {
                 UserId = UserId
             };

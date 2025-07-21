@@ -18,14 +18,13 @@ public static class CloudSaveController
             var cloudsaves = DBManager.UserCloudSave.GetList(x => x.UserId == UserId && x.UplayId == productId);
             if (cloudsaves == null)
             {
-                cloudsaves = new();
                 UserCloudSave save = new()
                 {
                     UplayId = productId,
                     UserId = UserId
                 };
                 DBManager.UserCloudSave.Create(save);
-                cloudsaves.Add(save);
+                cloudsaves = [save];
             }
             return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(cloudsaves));
         }
@@ -76,7 +75,7 @@ public static class CloudSaveController
     public static UserCloudSave? GetCloudSave(Guid UserId, string itemOrName, uint productId)
     {
         UserCloudSave? cloudsave = null;
-        if (itemOrName.Contains("savegame"))
+        if (!itemOrName.Contains("savegame"))
         {
             cloudsave = DBManager.UserCloudSave.GetOne(x => x.UserId == UserId && x.SaveName == itemOrName && x.UplayId == productId);
             if (cloudsave == null)
@@ -90,23 +89,21 @@ public static class CloudSaveController
                 };
                 DBManager.UserCloudSave.Create(cloudsave);
             }
+            return cloudsave;
         }
-        else
+        if (!uint.TryParse(itemOrName, out uint itemId))
+            return cloudsave;
+        cloudsave = DBManager.UserCloudSave.GetOne(x => x.UserId == UserId && x.SaveId == itemId && x.UplayId == productId);
+        if (cloudsave == null)
         {
-            if (!uint.TryParse(itemOrName, out uint itemId))
-                return cloudsave;
-            cloudsave = DBManager.UserCloudSave.GetOne(x => x.UserId == UserId && x.SaveId == itemId && x.UplayId == productId);
-            if (cloudsave == null)
+            cloudsave = new()
             {
-                cloudsave = new()
-                {
-                    UserId = UserId,
-                    UplayId = productId,
-                    SaveId = itemId,
-                    SaveName = itemId + ".savegame"
-                };
-                DBManager.UserCloudSave.Create(cloudsave);
-            }
+                UserId = UserId,
+                UplayId = productId,
+                SaveId = itemId,
+                SaveName = itemId + ".savegame"
+            };
+            DBManager.UserCloudSave.Create(cloudsave);
         }
         return cloudsave;
     }

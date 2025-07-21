@@ -7,8 +7,20 @@ using ZstdNet;
 
 namespace ServerShared.Extensions;
 
+/// <summary>
+/// Dceompression and Compression extension for most of the compression methods.
+/// </summary>
 public static class DeCompExtension
 {
+    /// <summary>
+    /// Decompress <paramref name="bytesToDecompress"/> with <paramref name="CompressionMethod"/>.
+    /// </summary>
+    /// <param name="IsCompressed">Indicate the <paramref name="bytesToDecompress"/> is compressed.</param>
+    /// <param name="IsCustomLzham">Only for custom lzham handling!</param>
+    /// <param name="CompressionMethod">A compression method.</param>
+    /// <param name="bytesToDecompress">Data</param>
+    /// <param name="outputsize">Decompressed output size.</param>
+    /// <returns>Decompressed Data.</returns>
     public static byte[] Decompress(bool IsCompressed, bool IsCustomLzham, string CompressionMethod, byte[] bytesToDecompress, uint outputsize)
     {
         if (!IsCompressed)
@@ -28,30 +40,25 @@ public static class DeCompExtension
                 decompressor.Dispose();
                 return ms.ToArray();
             case "lzham":
-                if (IsCustomLzham)
                 {
-                    DecompressionParameters d = new()
+                    DecompressionParameters parameters = new()
                     {
                         Flags = LzhamWrapper.Enums.DecompressionFlag.ComputeAdler32,
                         DictionarySize = 26,
                         UpdateRate = LzhamWrapper.Enums.TableUpdateRate.Default
                     };
-                    MemoryStream mem = new((int)outputsize);
-                    LzhamStream lzhamStream = new(new MemoryStream(bytesToDecompress), d);
-                    lzhamStream.CopyTo(mem);
-                    lzhamStream.Dispose();
-                    return mem.ToArray();
-                }
-                else
-                {
-                    DecompressionParameters d = new()
+                    if (!IsCustomLzham)
                     {
-                        Flags = LzhamWrapper.Enums.DecompressionFlag.ComputeAdler32 | LzhamWrapper.Enums.DecompressionFlag.ReadZlibStream,
-                        DictionarySize = 15,
-                        UpdateRate = LzhamWrapper.Enums.TableUpdateRate.Default
-                    };
+                        parameters = new()
+                        {
+                            Flags = LzhamWrapper.Enums.DecompressionFlag.ComputeAdler32 | LzhamWrapper.Enums.DecompressionFlag.ReadZlibStream,
+                            DictionarySize = 15,
+                            UpdateRate = LzhamWrapper.Enums.TableUpdateRate.Default
+                        };
+                    }
+
                     MemoryStream mem = new((int)outputsize);
-                    LzhamStream lzhamStream = new(new MemoryStream(bytesToDecompress), d);
+                    LzhamStream lzhamStream = new(new MemoryStream(bytesToDecompress), parameters);
                     lzhamStream.CopyTo(mem);
                     lzhamStream.Dispose();
                     return mem.ToArray();
@@ -63,14 +70,21 @@ public static class DeCompExtension
                     decompressed.CopyTo(mem);
                     return mem.ToArray();
                 }
+            case "zlib":
+                return Ionic.Zlib.ZlibStream.UncompressBuffer(bytesToDecompress);
         }
         return bytesToDecompress;
     }
 
-    public static byte[] Compress(bool IsCompressed, bool IsCustomLzham, string CompressionMethod, byte[] bytesToCompress, uint outputsize)
+    /// <summary>
+    /// Compress <paramref name="bytesToCompress"/> with <paramref name="CompressionMethod"/>.
+    /// </summary>
+    /// <param name="IsCustomLzham">Only for custom lzham handling!</param>
+    /// <param name="CompressionMethod">A compression method.</param>
+    /// <param name="bytesToCompress">Data to be compressed.</param>
+    /// <returns>Compressed Data</returns>
+    public static byte[] Compress(bool IsCustomLzham, string CompressionMethod, byte[] bytesToCompress)
     {
-        if (!IsCompressed)
-            return bytesToCompress;
         switch (CompressionMethod.ToLower()) // check compression method
         {
             case "zstd":
@@ -87,38 +101,36 @@ public static class DeCompExtension
                 return ms.ToArray();
             case "lzham":
                 //50 MB Limit!
-                if (IsCustomLzham && outputsize <= 52428800)
+                if (IsCustomLzham)
                 {
                     uint adler = 0;
-                    CompressionParameters c = new()
+                    byte[] output = new byte[bytesToCompress.Length * 2];
+                    int outsize = output.Length;
+                    Lzham.CompressMemory(new()
                     {
                         Flags = 0,
                         DictionarySize = 26,
                         UpdateRate = LzhamWrapper.Enums.TableUpdateRate.Default,
                         Level = LzhamWrapper.Enums.CompressionLevel.Uber
-                    };
-
-                    byte[] output = new byte[outputsize];
-                    int outsize = output.Length;
-                    Lzham.CompressMemory(c, bytesToCompress, bytesToCompress.Length, 0, output, ref outsize, 0, ref adler);
-                    return output.Take(outsize).ToArray();
+                    }, bytesToCompress, bytesToCompress.Length, 0, output, ref outsize, 0, ref adler);
+                    return [.. output.Take(outsize)];
                 }
                 else
                 {
                     //return nothing to indicate we have issues!
                     return [];
                 }
+            case "lzo":
+                {
+                    using MemoryStream mem = new();
+                    using LzoStream compress = new(mem, CompressionMode.Compress);
+                    compress.Write(bytesToCompress);
+                    compress.Close();
+                    return mem.ToArray();
+                }
+            case "zlib":
+                return Ionic.Zlib.ZlibStream.CompressBuffer(bytesToCompress);
         }
         return bytesToCompress;
-    }
-
-    public static byte[] ZlibCompress(byte[] input)
-    {
-        return Ionic.Zlib.ZlibStream.CompressBuffer(input);
-    }
-
-    public static byte[] ZlibDecompress(byte[] input)
-    {
-        return Ionic.Zlib.ZlibStream.UncompressBuffer(input);
     }
 }

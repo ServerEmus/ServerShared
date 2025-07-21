@@ -1,4 +1,5 @@
 ﻿using LiteDB;
+using ServerShared.Experimental;
 using System.Linq.Expressions;
 
 namespace ServerShared.Database;
@@ -9,8 +10,9 @@ namespace ServerShared.Database;
 /// <typeparam name="T">Any type.</typeparam>
 public class DataBaseConnection<T>
 {
-    readonly LiteDatabase DB;
-    readonly ILiteCollection<T> Collection;
+    internal bool _disposed;
+    internal readonly LiteDatabase DB;
+    internal readonly ILiteCollection<T> Collection;
 
     /// <summary>
     /// Create a Database and Collection with type <typeparamref name="T"/> name.
@@ -86,6 +88,16 @@ public class DataBaseConnection<T>
     }
 
     /// <summary>
+    /// Check if the <paramref name="predicate"/> exists.
+    /// </summary>
+    /// <param name="predicate">Predicate.</param>
+    /// <returns>Returns <see langword="true"/> if found.</returns>
+    public virtual bool Exists(Expression<Func<T, bool>> predicate)
+    {
+        return Collection.Exists(predicate);
+    }
+
+    /// <summary>
     /// Delete many object with the <paramref name="predicate"/>.
     /// </summary>
     /// <param name="predicate">Predicate.</param>
@@ -100,5 +112,13 @@ public class DataBaseConnection<T>
     public virtual void Close()
     {
         DB.Dispose();
+        _disposed = true;
     }
+
+    /// <summary>
+    /// Is Database closed.
+    /// </summary>
+    /// <returns></returns>
+    public bool IsClosed()
+        => _disposed;
 }

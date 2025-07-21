@@ -1,8 +1,27 @@
+using System.Text.Json.Serialization;
+
 namespace ServerShared.JWTModels;
 
+/// <summary>
+/// Base JWT Model.
+/// </summary>
 public abstract class BaseJWT
 {
-    public string sub { get; set; } = string.Empty;
-    public string iss { get; set; } = string.Empty;
-    public long exp { get; set; } = 0;
+    /// <summary>
+    /// JWT Subject.
+    /// </summary>
+    [JsonPropertyName("sub")]
+    public string Subject { get; set; } = string.Empty;
+
+    /// <summary>
+    /// JWT Issuer.
+    /// </summary>
+    [JsonPropertyName("iss")]
+    public string Issuer { get; set; } = string.Empty;
+
+    /// <summary>
+    /// JWT Expiration.
+    /// </summary>
+    [JsonPropertyName("exp")]
+    public long Expiration { get; set; } = 0;
 }

@@ -11,39 +11,84 @@ namespace ServerShared.Database;
 /// </summary>
 public static class DBManager
 {
-#region API
+    #region API
     /// <summary>
-    /// Database Connection for <see cref="ServerShared.Models.App.AppApi"/>.
+    /// Database Connection for <see cref="ApiModels.AppApi"/>.
     /// </summary>
-    public static DataBaseConnection<AppApi> AppAPI { get; }
-#endregion
-#region Common
+    public static DataBaseConnection<AppApi> AppApi { get; }
+    #endregion
+    #region Common
+    /// <summary>
+    /// Database Connection for <see cref="AuthModels.CurrentToken"/>.
+    /// </summary>
     public static DataBaseConnection<CurrentToken> CurrentToken { get; }
+    /// <summary>
+    /// Database Connection for <see cref="AuthModels.Demux"/>.
+    /// </summary>
     public static DataBaseConnection<Demux> DemuxConnection { get; }
-#endregion
-#region Common
+    #endregion
+    #region Common
+    /// <summary>
+    /// Database Connection for <see cref="CommonModels.CDKey"/>.
+    /// </summary>
     public static DataBaseConnection<CDKey> CDKey { get; }
-#endregion
-#region Product
+    #endregion
+    #region Product
+    /// <summary>
+    /// Database Connection for <see cref="ProductModels.ProductBranch"/>.
+    /// </summary>
     public static DataBaseConnection<ProductBranch> Branch { get; }
+    /// <summary>
+    /// Database Connection for <see cref="ProductModels.ProductStore"/>.
+    /// </summary>
     public static DataBaseConnection<ProductStore> Store { get; }
+    /// <summary>
+    /// Database Connection for <see cref="ProductModels.ProductConfig"/>.
+    /// </summary>
     public static DataBaseConnection<ProductConfig> ProductConfig { get; }
-#endregion
-#region User
+    #endregion
+    #region User
+    /// <summary>
+    /// Database Connection for <see cref="UserModels.UserActivity"/>.
+    /// </summary>
     public static DataBaseConnection<UserActivity> UserActivity { get; }
+    /// <summary>
+    /// Database Connection for <see cref="UserModels.UserCloudSave"/>.
+    /// </summary>
     public static DataBaseConnection<UserCloudSave> UserCloudSave { get; }
+    /// <summary>
+    /// Database Connection for <see cref="UserModels.UserCommon"/>.
+    /// </summary>
     public static DataBaseConnection<UserCommon> UserCommon { get; }
+    /// <summary>
+    /// Database Connection for <see cref="UserModels.UserFriend"/>.
+    /// </summary>
     public static DataBaseConnection<UserFriend> UserFriend { get; }
+    /// <summary>
+    /// Database Connection for <see cref="UserModels.UserGameSession"/>.
+    /// </summary>
     public static DataBaseConnection<UserGameSession> UserGameSession { get; }
+    /// <summary>
+    /// Database Connection for <see cref="UserModels.UserLogin"/>.
+    /// </summary>
     public static DataBaseConnection<UserLogin> UserLogin { get; }
+    /// <summary>
+    /// Database Connection for <see cref="UserModels.UserOwnership"/>.
+    /// </summary>
     public static DataBaseConnection<UserOwnership> UserOwnership { get; }
+    /// <summary>
+    /// Database Connection for <see cref="UserModels.UserOwnershipBasic"/>.
+    /// </summary>
     public static DataBaseConnection<UserOwnershipBasic> UserOwnershipBasic { get; }
+    /// <summary>
+    /// Database Connection for <see cref="UserModels.UserPlaytime"/>.
+    /// </summary>
     public static DataBaseConnection<UserPlaytime> UserPlaytime { get; }
-#endregion
+    #endregion
 
     static DBManager()
     {
-        AppAPI = new("App");
+        AppApi = new("App");
 
         CurrentToken = new("tmp");
         DemuxConnection = new("tmp");

@@ -9,7 +9,7 @@ public class UserOwnership : UserBase
     public uint CurrentBranchId { get; set; } = 0;
     public List<uint> ActivationIds { get; set; } = [];
     public List<uint> Subscriptions { get; set; } = [];
-    public List<AppFlags> AppFlags { get; set; } = [];
+    public AppFlags AppFlags { get; set; } = AppFlags.Downloadable | AppFlags.Playable;
     public Uplay.Ownership.OwnedGame.Types.PackageOwnershipState PackageState { get; set; }
     public Uplay.Ownership.OwnedGame.Types.SuspensionType Suspension { get; set; }
     public Uplay.Ownership.OwnedGame.Types.ActivationType Activation { get; set; }
