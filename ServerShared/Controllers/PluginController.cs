@@ -1,6 +1,6 @@
 ﻿using Serilog;
-using System.Reflection;
 using ServerShared.Interfaces;
+using System.Reflection;
 
 namespace ServerShared.Controllers;
 
@@ -29,14 +29,18 @@ public static class PluginController
             var assemlby = Assembly.LoadFile(file);
             if (assemlby == null)
                 continue;
-            // TODO: Better search & can use multiple plugin in file.
-            var type = assemlby.GetType("Plugin.Plugin");
-            if (type == null)
-                continue;
-            IPlugin? iPlugin = (IPlugin?)Activator.CreateInstance(type);
-            if (iPlugin == null)
-                continue;
-            plugins.Add(iPlugin);
+            foreach (Type type in assemlby.GetTypes())
+            {
+                // We check if the type is derived from Plugin.
+                if (!type.IsSubclassOf(typeof(IPlugin)) || type.IsAbstract)
+                    continue;
+
+                // We create an instance of the type and check if it was successfully created.
+                if (Activator.CreateInstance(type) is not IPlugin plugin)
+                    continue;
+
+                plugins.Add(plugin);
+            }
         }
         plugins = [.. plugins.OrderBy(x => x.Priority)];
         foreach (IPlugin iPlugin in plugins)
@@ -73,14 +77,19 @@ public static class PluginController
         var assemlby = Assembly.LoadFile(path);
         if (assemlby == null)
             return;
-        var type = assemlby.GetType("Plugin.Plugin");
-        if (type == null)
-            return;
-        IPlugin? iPlugin = (IPlugin?)Activator.CreateInstance(type);
-        if (iPlugin == null)
-            return;
-        if (pluginsList.TryAdd(iPlugin.Name, iPlugin))
-            PluginInit(iPlugin);
+        foreach (Type type in assemlby.GetTypes())
+        {
+            // We check if the type is derived from Plugin.
+            if (!type.IsSubclassOf(typeof(IPlugin)) || type.IsAbstract)
+                continue;
+
+            // We create an instance of the type and check if it was successfully created.
+            if (Activator.CreateInstance(type) is not IPlugin plugin)
+                continue;
+
+            if (pluginsList.TryAdd(plugin.Name, plugin))
+                PluginInit(plugin);
+        }
     }
 
     /// <summary>

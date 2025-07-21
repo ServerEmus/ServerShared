@@ -18,6 +18,22 @@ public static class UserCommonController
         return DBManager.UserCommon.Exists(x => x.UserId == UserId);
     }
 
+    public static string GetUserName(Guid UserId)
+    {
+        var user = DBManager.UserCommon.GetOne(x => x.UserId == UserId);
+        if (user == null)
+            return string.Empty;
+        return user.Name;
+    }
+
+    public static IEnumerable<Guid> GetFriendIds(Guid UserId)
+    {
+        var user = DBManager.UserCommon.GetOne(x => x.UserId == UserId);
+        if (user == null)
+            return [];
+        return user.Friends;
+    }
+
     public static void RemoveFromFriends(Guid UserId, Guid FriendId)
     {
         UserCommon? user = DBManager.UserCommon.GetOne(x => x.UserId == UserId);
@@ -32,5 +48,7 @@ public static class UserCommonController
             friend.Friends.Remove(UserId);
             DBManager.UserCommon.Update(friend);
         }
+        DBManager.UserFriend.Delete(x => x.UserId == UserId && x.IdOfFriend == FriendId);
+        DBManager.UserFriend.Delete(x => x.UserId == FriendId && x.IdOfFriend == UserId);
     }
 }
