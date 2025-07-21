@@ -38,7 +38,7 @@ public class DataBaseConnection<T>
     /// <param name="password">The password for the database.</param>
     public DataBaseConnection(string dbName, string collectionName, string? password)
     {
-        DB = new LiteDatabase(new ConnectionString() { Connection = ConnectionType.Shared, Filename = $"{dbName}.db" , Password = password });
+        DB = new LiteDatabase(new ConnectionString() { Connection = ConnectionType.Shared, Filename = Path.Combine("Database", $"{dbName}.db") , Password = password });
         Collection = DB.GetCollection<T>(collectionName);
     }
 
