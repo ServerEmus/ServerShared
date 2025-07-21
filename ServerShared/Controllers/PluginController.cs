@@ -29,6 +29,7 @@ public static class PluginController
             var assemlby = Assembly.LoadFile(file);
             if (assemlby == null)
                 continue;
+            // TODO: Better search & can use multiple plugin in file.
             var type = assemlby.GetType("Plugin.Plugin");
             if (type == null)
                 continue;
