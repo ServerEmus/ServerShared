@@ -1,12 +1,12 @@
 ﻿using Serilog;
 using System.Reflection;
 
-namespace ServerShared.Plugin;
+namespace ServerShared.Controller;
 
 /// <summary>
 /// Managing <see cref="IPlugin"/>. (Load, Unload, Calls)
 /// </summary>
-public static class PluginManager
+public static class PluginController
 {
     private static readonly Dictionary<string, IPlugin> pluginsList = [];
     
