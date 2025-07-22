@@ -31,8 +31,7 @@ public static class PluginController
                 continue;
             foreach (Type type in assemlby.GetTypes())
             {
-                // We check if the type is derived from Plugin.
-                if (!type.IsSubclassOf(typeof(IPlugin)) || type.IsAbstract)
+                if (!typeof(IPlugin).IsAssignableFrom(type) || type.IsAbstract)
                     continue;
 
                 // We create an instance of the type and check if it was successfully created.
@@ -79,9 +78,8 @@ public static class PluginController
             return;
         foreach (Type type in assemlby.GetTypes())
         {
-            // We check if the type is derived from Plugin.
-            if (!type.IsSubclassOf(typeof(IPlugin)) || type.IsAbstract)
-                continue;
+            if (!typeof(IPlugin).IsAssignableFrom(type) || type.IsAbstract)
+                    continue;
 
             // We create an instance of the type and check if it was successfully created.
             if (Activator.CreateInstance(type) is not IPlugin plugin)
