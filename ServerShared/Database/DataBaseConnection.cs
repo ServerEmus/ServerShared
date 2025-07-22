@@ -1,11 +1,10 @@
 ﻿using LiteDB;
-using ServerShared.Experimental;
 using System.Linq.Expressions;
 
 namespace ServerShared.Database;
 
 /// <summary>
-/// Easy Database Connection with LiteDB.
+/// Database Connection with LiteDB.
 /// </summary>
 /// <typeparam name="T">Any type.</typeparam>
 public class DataBaseConnection<T>
@@ -40,6 +39,8 @@ public class DataBaseConnection<T>
     /// <param name="password">The password for the database.</param>
     public DataBaseConnection(string dbName, string collectionName, string? password)
     {
+        // Ensuring the Dabase is exists.
+        Directory.CreateDirectory("Database");
         DB = new LiteDatabase(new ConnectionString() { Connection = ConnectionType.Shared, Filename = Path.Combine("Database", $"{dbName}.db") , Password = password });
         Collection = DB.GetCollection<T>(collectionName);
     }
@@ -104,6 +105,16 @@ public class DataBaseConnection<T>
     public virtual void Delete(Expression<Func<T, bool>> predicate)
     {
         Collection.DeleteMany(predicate);
+    }
+
+    /// <summary>
+    /// Getting a value by reference and saving the value when disposing.
+    /// </summary>
+    /// <param name="predicate">Predicate.</param>
+    /// <returns></returns>
+    public virtual DBRefValue<T>? GetRefValue(Expression<Func<T, bool>> predicate)
+    {
+        return new(Collection.FindOne(predicate), this);
     }
 
     /// <summary>

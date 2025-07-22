@@ -1,4 +1,3 @@
-using Google.Protobuf;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Text;
@@ -31,9 +30,8 @@ public static class Base64CompressionExtension
     {
         using MemoryStream mem = new();
         using Compressor compressorZstd = new();
-        var zstd = compressorZstd.Wrap(bytes);
-        mem.Write(zstd);
-        return ByteString.CopyFrom(mem.ToArray()).ToBase64();
+        mem.Write(compressorZstd.Wrap(bytes));
+        return Convert.ToBase64String(mem.ToArray());
     }
 
     /// <summary>
@@ -55,9 +53,8 @@ public static class Base64CompressionExtension
     {
         using MemoryStream mem = new();
         using Decompressor decompressor = new();
-        var unzstd = decompressor.Unwrap(bytes);
-        mem.Write(unzstd);
-        return ByteString.CopyFrom(mem.ToArray()).ToBase64();
+        mem.Write(decompressor.Unwrap(bytes));
+        return Convert.ToBase64String(mem.ToArray());
     }
     #endregion
     #region Deflate
@@ -79,11 +76,9 @@ public static class Base64CompressionExtension
     public static string GetDeflateB64(byte[] bytes)
     {
         using MemoryStream mem = new();
-        var defl = new Deflater(Deflater.BEST_COMPRESSION, false);
-        using Stream deflate = new DeflaterOutputStream(mem, defl);
+        using DeflaterOutputStream deflate = new(mem, new(Deflater.BEST_COMPRESSION, false));
         deflate.Write(bytes);
-        deflate.Close();
-        return ByteString.CopyFrom(mem.ToArray()).ToBase64();
+        return Convert.ToBase64String(mem.ToArray());
     }
 
     /// <summary>
@@ -104,9 +99,9 @@ public static class Base64CompressionExtension
     public static string GetUnDeflateB64(byte[] bytes)
     {
         using MemoryStream mem = new();
-        using var inf = new InflaterInputStream(mem);
+        using InflaterInputStream inf = new(mem);
         inf.ReadExactly(bytes);
-        return ByteString.CopyFrom(mem.ToArray()).ToBase64();
+        return Convert.ToBase64String(mem.ToArray());
     }
     #endregion
 }

@@ -2,16 +2,14 @@
 using ModdableWebServer.Helper;
 using NetCoreServer;
 using Serilog;
-using ServerShared.CommonModels;
 using ServerShared.Server;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Security.Authentication;
 
 namespace ServerShared.Controllers;
 
 /// <summary>
-/// Controller for <see cref="UplayServer"/>.
+/// Controller for <see cref="CoreServer"/>.
 /// </summary>
 public static class ServerController
 {
@@ -20,25 +18,21 @@ public static class ServerController
     readonly static Dictionary<string, Dictionary<WSAttribute, MethodInfo>> WS_Plugins = [];
     readonly static Dictionary<HTTPAttribute, MethodInfo> Main_HTTP = AttributeMethodHelper.GetMethodAndAttribute<HTTPAttribute>(ServerManagerAssembly);
     readonly static Dictionary<WSAttribute, MethodInfo> Main_WS = AttributeMethodHelper.GetMethodAndAttribute<WSAttribute>(ServerManagerAssembly);
-    static UplayServer? server;
+    static CoreServer? server;
 
     /// <summary>
-    /// Getting the <see cref="UplayServer"/>.
+    /// Getting the <see cref="CoreServer"/>.
     /// </summary>
-    public static UplayServer? Server
+    public static CoreServer? Server
         => server;
 
     /// <summary>
     /// Starting the server.
     /// </summary>
-    public static void Start()
+    public static void Start(SslContext context)
     {
-        Directory.CreateDirectory("logs");
-        DebugPrinter.EnableLogs = true;
-        //DebugPrinter.PrintToConsole = true;
         ArgumentNullException.ThrowIfNull(ServerManagerAssembly, nameof(ServerManagerAssembly));
-        SslContext? context = CertHelper.GetContextNoValidate(SslProtocols.Tls12, $"cert/services.pfx", ServerConfig.Instance.Cert.ServicesCertPassword);
-        server = new UplayServer(context);
+        server = new(context);
         AddRoutes(ServerManagerAssembly);
         server.DoReturn404IfFail = false;
         server.ReceivedFailed += Failed;
@@ -54,12 +48,10 @@ public static class ServerController
     /// </summary>
     public static void Stop()
     {
-        if (server != null)
-        {
-            server.Stop();
-            server = null;
-        }
-
+        if (server == null)
+            return;
+        server.Stop();
+        server = null;
         Log.Information("Server stopped.");
     }
 
@@ -71,7 +63,7 @@ public static class ServerController
     {
         if (server == null)
             return;
-        var name = assembly.GetName().FullName;
+        string name = assembly.GetName().FullName;
         HTTP_Plugins.Add(name, AttributeMethodHelper.GetMethodAndAttribute<HTTPAttribute>(assembly));
         WS_Plugins.Add(name, AttributeMethodHelper.GetMethodAndAttribute<WSAttribute>(assembly));
         server.MergeWSAttribute(assembly);
@@ -84,7 +76,7 @@ public static class ServerController
     /// <param name="assembly"></param>
     public static void RemoveRoutes(Assembly assembly)
     {
-        var name = assembly.GetName().FullName;
+        string name = assembly.GetName().FullName;
         HTTP_Plugins.Remove(name);
         WS_Plugins.Remove(name);
         if (server == null)
@@ -115,12 +107,12 @@ public static class ServerController
 
     private static void RecvReqError(object? sender, (HttpRequest request, string error) e)
     {
-        Log.Information("RecvReqError! {url}, {error}", e.request.Url, e.error);
+        Log.Error("RecvReqError! {url}, {error}", e.request.Url, e.error);
     }
 
     private static void OnSocketError(object? sender, SocketError e)
     {
-        Log.Information("OnSocketError! {error}", e);
+        Log.Error("OnSocketError! {error}", e);
     }
 
     private static void Failed(object? sender, HttpRequest request)

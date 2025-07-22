@@ -28,13 +28,4 @@ public static class RandomController
 
         return ran;
     }
-
-    /// <summary>
-    /// Generate a random Uplay-like CD Key.
-    /// </summary>
-    /// <returns>A cd key.</returns>
-    public static string RandomCDKey()
-    {
-        return $"{RandomString(3)}-{RandomString(4)}-{RandomString(4)}-{RandomString(4)}-{RandomString(4)}";
-    }
 }

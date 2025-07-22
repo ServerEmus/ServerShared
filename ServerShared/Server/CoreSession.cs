@@ -3,7 +3,7 @@
 namespace ServerShared.Server;
 
 /// <inheritdoc/>
-public class UplaySession(UplayServer server) : WSS_Server.Session(server)
+public class CoreSession(CoreServer server) : WSS_Server.Session(server)
 {
     /// <summary>
     /// Bytes received as SSL Stream.
@@ -20,11 +20,10 @@ public class UplaySession(UplayServer server) : WSS_Server.Session(server)
     /// </summary>
     public static event EventHandler<Guid>? OnDisconnectedEvent;
 
-
     /// <summary>
-    /// Uplay Server.
+    /// Core Server.
     /// </summary>
-    public UplayServer UServer => server;
+    public CoreServer CServer => server;
 
     /// <summary>
     /// Is session is SSL not HTTP.
@@ -54,8 +53,7 @@ public class UplaySession(UplayServer server) : WSS_Server.Session(server)
     public override void OnReceived(byte[] buffer, long offset, long size)
     {
         var buf = buffer.Take((int)size).Skip((int)offset).ToArray();
-        var is_ascii = char.IsAsciiLetterUpper((char)buf[0]);
-        if (is_ascii || this.WebSocket.WsHandshaked)
+        if (char.IsAsciiLetterUpper((char)buf[0]) || this.WebSocket.WsHandshaked)
             base.OnReceived(buffer, offset, size);
         else
         {
