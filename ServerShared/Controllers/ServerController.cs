@@ -40,21 +40,25 @@ public static class ServerController
         if (serverModel.Context != null)
         {
             serverModel.Server = new CoreSecureServer(serverModel.Context, serverModel.Port);
-            CoreSecureServer css = serverModel.Server as CoreSecureServer;
-            css.DoReturn404IfFail = false;
-            css.ReceivedFailed += Failed;
-            css.OnSocketError += OnSocketError;
-            css.ReceivedRequestError += RecvReqError;
-            css.Context.ClientCertificateRequired = false;
+            CoreSecureServer srv = serverModel.Server as CoreSecureServer;
+            if (srv == null)
+                return;
+            srv.DoReturn404IfFail = false;
+            srv.ReceivedFailed += Failed;
+            srv.OnSocketError += OnSocketError;
+            srv.ReceivedRequestError += RecvReqError;
+            srv.Context.ClientCertificateRequired = false;
         }
         else
         {
             serverModel.Server = new CoreUnsecureServer(serverModel.Port);
-            CoreUnsecureServer css = serverModel.Server as CoreUnsecureServer;
-            css.DoReturn404IfFail = false;
-            css.ReceivedFailed += Failed;
-            css.OnSocketError += OnSocketError;
-            css.ReceivedRequestError += RecvReqError;
+            CoreUnsecureServer srv = serverModel.Server as CoreUnsecureServer;
+            if (srv == null)
+                return;
+            srv.DoReturn404IfFail = false;
+            srv.ReceivedFailed += Failed;
+            srv.OnSocketError += OnSocketError;
+            srv.ReceivedRequestError += RecvReqError;
         }
         serverModel.Server.Start();
         Servers.Add(serverModel);
@@ -66,8 +70,8 @@ public static class ServerController
     /// </summary>
     public static void Stop(bool clear = false)
     {
-        foreach (ServerModel server in Servers)
-            server.Stop();
+        foreach (ServerModel serverModel in Servers)
+            serverModel.Server?.Stop();
         if (clear)
             Servers.Clear();
         Log.Information("Servers stopped.");
