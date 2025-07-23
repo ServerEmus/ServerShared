@@ -19,7 +19,7 @@ public static class ServerController
     readonly static Dictionary<string, Dictionary<WSAttribute, MethodInfo>> WS_Plugins = [];
     readonly static Dictionary<HTTPAttribute, MethodInfo> Main_HTTP = AttributeMethodHelper.GetMethodAndAttribute<HTTPAttribute>(ServerManagerAssembly);
     readonly static Dictionary<WSAttribute, MethodInfo> Main_WS = AttributeMethodHelper.GetMethodAndAttribute<WSAttribute>(ServerManagerAssembly);
-    readonly static List<ServerModel> Servers = [];
+    readonly static List<ServerModel> InternalServers = [];
 
     static ServerController()
     {
@@ -32,7 +32,7 @@ public static class ServerController
     /// </summary>
     public static void Start(List<ServerModel> servers)
     {
-        foreach (ServerModel server in servers)
+        foreach (ServerModel server in InternalServers)
             Start(server);
     }
 
@@ -62,7 +62,7 @@ public static class ServerController
             serverModel.Server = srv;
         }
         serverModel.Server.Start();
-        Servers.Add(serverModel);
+        InternalServers.Add(serverModel);
         Log.Information("Server started on {Port}!", serverModel.Port);
     }
 
@@ -71,11 +71,18 @@ public static class ServerController
     /// </summary>
     public static void Stop(bool clear = false)
     {
-        foreach (ServerModel serverModel in Servers)
+        foreach (ServerModel serverModel in InternalServers)
             serverModel.Server?.Stop();
         if (clear)
-            Servers.Clear();
+            InternalServers.Clear();
         Log.Information("Servers stopped.");
+    }
+
+    public static IEnumerable<ServerModel> Servers => InternalServers;
+
+    public static bool IsPortUsed(int port)
+    {
+        return InternalServers.Any(server => server.Port == port);
     }
 
     private static void RecvReqError(object? sender, (HttpRequest request, string error) e)
