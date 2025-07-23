@@ -1,12 +1,15 @@
 namespace ServerShared.Interfaces;
 
+/// <summary>
+/// Interface for easier managing the Servers.
+/// </summary>
 public interface IServer
 {
     /// <summary>
     /// Server Id
     /// </summary>
     Guid Id { get; }
-    
+
     /// <summary>
     /// Start the server
     /// </summary>

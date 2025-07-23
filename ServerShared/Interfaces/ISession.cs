@@ -1,5 +1,8 @@
 namespace ServerShared.Interfaces;
 
+/// <summary>
+/// Interface for easier managing the Sessions.
+/// </summary>
 public interface ISession
 {
     /// <summary>

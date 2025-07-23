@@ -10,7 +10,7 @@ using ServerShared.CommonModels;
 namespace ServerShared.Controllers;
 
 /// <summary>
-/// Controller for <see cref="CoreServer"/>.
+/// Controller for <see cref="ServerModel"/>'.
 /// </summary>
 public static class ServerController
 {
@@ -27,7 +27,8 @@ public static class ServerController
     }
 
     /// <summary>
-    /// Starting the server.
+    /// Starting the servers.
+    /// <param name="servers">A list of models for server creation/starting</param>
     /// </summary>
     public static void Start(List<ServerModel> servers)
     {
@@ -35,6 +36,10 @@ public static class ServerController
             Start(server);
     }
 
+    /// <summary>
+    /// Starting the servers.
+    /// <param name="serverModel">A model for server creation/starting</param>
+    /// </summary>
     public static void Start(ServerModel serverModel)
     {
         if (serverModel.Context != null)
