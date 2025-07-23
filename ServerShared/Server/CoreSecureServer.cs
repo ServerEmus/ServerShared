@@ -38,11 +38,11 @@ public class CoreSecureServer(SslContext context, int port) : WSS_Server(context
 
     private void Session_OnConnected(object? sender, Guid e)
     {
-        CoreSecureSession.TryAdd(e, (CoreSecureSession)sender!);
+        CoreSessions.TryAdd(e, (CoreSecureSession)sender!);
     }
 
     private void Session_OnDisconnected(object? sender, Guid e)
     {
-        CoreSecureSession.Remove(e, out _);
+        CoreSessions.Remove(e, out _);
     }
 }

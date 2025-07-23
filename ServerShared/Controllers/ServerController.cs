@@ -37,9 +37,9 @@ public static class ServerController
 
     public static void Start(ServerModel serverModel)
     {
-        if (context)
+        if (serverModel.Context != null)
         {
-            serverModel.Server = new CoreSecureServer(context, serverModel.Port);
+            serverModel.Server = new CoreSecureServer(serverModel.Context, serverModel.Port);
             CoreSecureServer css = serverModel.Server as CoreSecureServer;
             css.DoReturn404IfFail = false;
             css.ReceivedFailed += Failed;
@@ -49,7 +49,7 @@ public static class ServerController
         }
         else
         {
-            serverModel.UnsecureServer = new CoreUnsecureServer(serverModel.Port);
+            serverModel.Server = new CoreUnsecureServer(serverModel.Port);
             CoreUnsecureServer css = serverModel.Server as CoreUnsecureServer;
             css.DoReturn404IfFail = false;
             css.ReceivedFailed += Failed;

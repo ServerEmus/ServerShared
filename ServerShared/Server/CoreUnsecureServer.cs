@@ -38,11 +38,11 @@ public class CoreUnsecureServer(int port) : WS_Server(IPAddress.Any, port), ISer
 
     private void Session_OnConnected(object? sender, Guid e)
     {
-        CoreUnsecureSession.TryAdd(e, (CoreUnsecureSession)sender!);
+        CoreSessions.TryAdd(e, (CoreUnsecureSession)sender!);
     }
 
     private void Session_OnDisconnected(object? sender, Guid e)
     {
-        CoreUnsecureSession.Remove(e, out _);
+        CoreSessions.Remove(e, out _);
     }
 }
