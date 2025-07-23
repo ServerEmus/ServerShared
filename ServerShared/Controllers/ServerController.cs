@@ -18,91 +18,58 @@ public static class ServerController
     readonly static Dictionary<string, Dictionary<WSAttribute, MethodInfo>> WS_Plugins = [];
     readonly static Dictionary<HTTPAttribute, MethodInfo> Main_HTTP = AttributeMethodHelper.GetMethodAndAttribute<HTTPAttribute>(ServerManagerAssembly);
     readonly static Dictionary<WSAttribute, MethodInfo> Main_WS = AttributeMethodHelper.GetMethodAndAttribute<WSAttribute>(ServerManagerAssembly);
-    static CoreServer? server;
+    readonly static List<ServerModel> Servers = [];
 
-    /// <summary>
-    /// Getting the <see cref="CoreServer"/>.
-    /// </summary>
-    public static CoreServer? Server
-        => server;
+    static ServerController()
+    {
+        ArgumentNullException.ThrowIfNull(ServerManagerAssembly, nameof(ServerManagerAssembly));
+    }
 
     /// <summary>
     /// Starting the server.
     /// </summary>
-    public static void Start(SslContext context)
+    public static void Start(List<ServerModel> servers)
     {
-        ArgumentNullException.ThrowIfNull(ServerManagerAssembly, nameof(ServerManagerAssembly));
-        server = new(context);
-        AddRoutes(ServerManagerAssembly);
-        server.DoReturn404IfFail = false;
-        server.ReceivedFailed += Failed;
-        server.OnSocketError += OnSocketError;
-        server.ReceivedRequestError += RecvReqError;
-        server.Context.ClientCertificateRequired = false;
-        server.Start();
-        Log.Information("Server started on {Address}!", server.Address);
+        foreach (ServerModel server in servers)
+            Start(server);
+    }
+
+    public static void Start(ServerModel serverModel)
+    {
+        if (context)
+        {
+            serverModel.Server = new CoreSecureServer(context, serverModel.Port);
+            CoreSecureServer css = serverModel.Server as CoreSecureServer;
+            css.DoReturn404IfFail = false;
+            css.ReceivedFailed += Failed;
+            css.OnSocketError += OnSocketError;
+            css.ReceivedRequestError += RecvReqError;
+            css.Context.ClientCertificateRequired = false;
+        }
+        else
+        {
+            serverModel.UnsecureServer = new CoreUnsecureServer(serverModel.Port);
+            CoreUnsecureServer css = serverModel.Server as CoreUnsecureServer;
+            css.DoReturn404IfFail = false;
+            css.ReceivedFailed += Failed;
+            css.OnSocketError += OnSocketError;
+            css.ReceivedRequestError += RecvReqError;
+        }
+        serverModel.Server.Start();
+        Servers.Add(serverModel);
+        Log.Information("Server started on {Port}!", serverModel.Port);
     }
 
     /// <summary>
     /// Stopping the server.
     /// </summary>
-    public static void Stop()
+    public static void Stop(bool clear = false)
     {
-        if (server == null)
-            return;
-        server.Stop();
-        server = null;
-        Log.Information("Server stopped.");
-    }
-
-    /// <summary>
-    /// Add Web Routes to <see cref="server"/>.
-    /// </summary>
-    /// <param name="assembly"></param>
-    public static void AddRoutes(Assembly assembly)
-    {
-        if (server == null)
-            return;
-        string name = assembly.GetName().FullName;
-        HTTP_Plugins.Add(name, AttributeMethodHelper.GetMethodAndAttribute<HTTPAttribute>(assembly));
-        WS_Plugins.Add(name, AttributeMethodHelper.GetMethodAndAttribute<WSAttribute>(assembly));
-        server.MergeWSAttribute(assembly);
-        server.MergeAttribute(assembly);
-    }
-
-    /// <summary>
-    /// Remove Web routes from <see cref="server"/>.
-    /// </summary>
-    /// <param name="assembly"></param>
-    public static void RemoveRoutes(Assembly assembly)
-    {
-        string name = assembly.GetName().FullName;
-        HTTP_Plugins.Remove(name);
-        WS_Plugins.Remove(name);
-        if (server == null)
-            return;
-        server.HTTP_AttributeToMethods = Main_HTTP;
-        server.WS_AttributeToMethods = Main_WS.ToDictionary(static x => x.Key.url, static x => x.Value);
-        foreach (var plugin in HTTP_Plugins)
-        {
-            if (plugin.Key == name)
-                continue;
-
-            foreach (var item in plugin.Value)
-            {
-                server.HTTP_AttributeToMethods.TryAdd(item.Key, item.Value);
-            }
-        }
-        foreach (var plugin in WS_Plugins)
-        {
-            if (plugin.Key == name)
-                continue;
-
-            foreach (var item in plugin.Value)
-            {
-                server.WS_AttributeToMethods.TryAdd(item.Key.url, item.Value);
-            }
-        }
+        foreach (ServerModel server in Servers)
+            server.Stop();
+        if (clear)
+            Servers.Clear();
+        Log.Information("Servers stopped.");
     }
 
     private static void RecvReqError(object? sender, (HttpRequest request, string error) e)

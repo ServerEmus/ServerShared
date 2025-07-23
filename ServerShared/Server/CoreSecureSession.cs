@@ -1,9 +1,10 @@
 ﻿using ModdableWebServer.Servers;
+using ServerShared.Interfaces;
 
 namespace ServerShared.Server;
 
 /// <inheritdoc/>
-public class CoreSession(CoreServer server) : WSS_Server.Session(server)
+public class CoreSecureSession(CoreSecureServer server) : WSS_Server.Session(server), ISession
 {
     /// <summary>
     /// Bytes received as SSL Stream.
@@ -21,11 +22,6 @@ public class CoreSession(CoreServer server) : WSS_Server.Session(server)
     public static event EventHandler<Guid>? OnDisconnectedEvent;
 
     /// <summary>
-    /// Core Server.
-    /// </summary>
-    public CoreServer CServer => server;
-
-    /// <summary>
     /// Is session is SSL not HTTP.
     /// </summary>
     public bool IsSSL { get; protected set; }
@@ -34,6 +30,11 @@ public class CoreSession(CoreServer server) : WSS_Server.Session(server)
     /// Session is closed.
     /// </summary>
     public bool IsClosed { get; internal set; }
+
+    public IServer GetServer()
+    {
+        return server as CoreSecureServer;
+    }
 
     /// <inheritdoc/>
     public override void OnConnected()
