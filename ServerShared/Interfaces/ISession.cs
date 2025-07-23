@@ -13,11 +13,6 @@ public interface ISession
     IServer GetServer();
 
     /// <summary>
-    /// Socket
-    /// </summary>
-    Socket Socket { get; }
-
-    /// <summary>
     /// Is the session connected?
     /// </summary>
     bool IsConnected { get; }
