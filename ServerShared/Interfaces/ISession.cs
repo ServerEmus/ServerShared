@@ -17,7 +17,13 @@ public interface ISession
     /// </summary>
     bool IsConnected { get; }
 
+    /// <summary>
+    /// Is session is SSL not HTTP.
+    /// </summary>
     bool IsSSL { get; }
 
+    /// <summary>
+    /// Session is closed.
+    /// </summary>
     bool IsClosed { get; }
 }

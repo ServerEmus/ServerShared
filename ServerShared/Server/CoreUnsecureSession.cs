@@ -31,6 +31,7 @@ public class CoreUnsecureSession(CoreUnsecureServer server) : WS_Server.Session(
     /// </summary>
     public bool IsClosed { get; internal set; }
 
+    /// <inheritdoc/>
     public IServer GetServer()
     {
         return server as CoreUnsecureServer;

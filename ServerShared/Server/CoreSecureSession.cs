@@ -31,6 +31,7 @@ public class CoreSecureSession(CoreSecureServer server) : WSS_Server.Session(ser
     /// </summary>
     public bool IsClosed { get; internal set; }
 
+    /// <inheritdoc/>
     public IServer GetServer()
     {
         return server as CoreSecureServer;

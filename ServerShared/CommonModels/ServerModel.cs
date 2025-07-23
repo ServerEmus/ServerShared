@@ -23,6 +23,9 @@ public class ServerModel
     /// </summary>
     public SslContext? Context { get; init; }
 
+    /// <summary>
+    /// The Server if exists.
+    /// </summary>
     public IServer? Server { get; set; }
 
 }

@@ -39,26 +39,22 @@ public static class ServerController
     {
         if (serverModel.Context != null)
         {
-            serverModel.Server = new CoreSecureServer(serverModel.Context, serverModel.Port);
-            CoreSecureServer srv = serverModel.Server as CoreSecureServer;
-            if (srv == null)
-                return;
+            CoreSecureServer srv = new(serverModel.Context, serverModel.Port);
             srv.DoReturn404IfFail = false;
             srv.ReceivedFailed += Failed;
             srv.OnSocketError += OnSocketError;
             srv.ReceivedRequestError += RecvReqError;
             srv.Context.ClientCertificateRequired = false;
+            serverModel.Server = srv;
         }
         else
         {
-            serverModel.Server = new CoreUnsecureServer(serverModel.Port);
-            CoreUnsecureServer srv = serverModel.Server as CoreUnsecureServer;
-            if (srv == null)
-                return;
+            CoreUnsecureServer srv = new(serverModel.Port);
             srv.DoReturn404IfFail = false;
             srv.ReceivedFailed += Failed;
             srv.OnSocketError += OnSocketError;
             srv.ReceivedRequestError += RecvReqError;
+            serverModel.Server = srv;
         }
         serverModel.Server.Start();
         Servers.Add(serverModel);
