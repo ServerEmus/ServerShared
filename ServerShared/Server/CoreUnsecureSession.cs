@@ -1,15 +1,14 @@
-﻿using ModdableWebServer.Servers;
-using ServerShared.Interfaces;
+﻿using ModdableWebServer.Sessions;
 
 namespace ServerShared.Server;
 
 /// <inheritdoc/>
-public class CoreUnsecureSession(CoreUnsecureServer server) : WS_Server.Session(server), ISession
+public class CoreUnsecureSession(CoreUnsecureServer server) : WS_Session(server)
 {
     /// <summary>
-    /// Bytes received as SSL Stream.
+    /// Bytes received from Stream.
     /// </summary>
-    public static event EventHandler<byte[]>? OnSSLReceived;
+    public static event EventHandler<byte[]>? OnBytesReceived;
 
     /// <summary>
     /// <see cref="Guid"/> connected.
@@ -22,45 +21,32 @@ public class CoreUnsecureSession(CoreUnsecureServer server) : WS_Server.Session(
     public static event EventHandler<Guid>? OnDisconnectedEvent;
 
     /// <summary>
-    /// Is session is SSL not HTTP.
+    /// Is session is either HTTP or WS.
     /// </summary>
-    public bool IsSSL { get; protected set; }
+    public bool IsWebSession { get; protected set; }
 
-    /// <summary>
-    /// Session is closed.
-    /// </summary>
-    public bool IsClosed { get; internal set; }
-
-    /// <inheritdoc/>
-    public IServer GetServer()
-    {
-        return server as CoreUnsecureServer;
-    }
 
     /// <inheritdoc/>
     public override void OnConnected()
-    {
-        OnConnectedEvent?.Invoke(this, Id);
-        IsClosed = false;
-    }
+        => OnConnectedEvent?.Invoke(this, Id);
 
     /// <inheritdoc/>
     public override void OnDisconnected()
-    {
-        OnDisconnectedEvent?.Invoke(this, Id);
-        IsClosed = true;
-    }
+        => OnDisconnectedEvent?.Invoke(this, Id);
 
     /// <inheritdoc/>
     public override void OnReceived(byte[] buffer, long offset, long size)
     {
         var buf = buffer.Take((int)size).Skip((int)offset).ToArray();
-        if (char.IsAsciiLetterUpper((char)buf[0]) || this.WebSocket.WsHandshaked)
+        if (char.IsAsciiLetterUpper((char)buf[0]) || WebSocket.WsHandshaked)
+        {
+            IsWebSession = true;
             base.OnReceived(buffer, offset, size);
+        }
         else
         {
-            IsSSL = true;
-            OnSSLReceived?.Invoke(this, buf);
+            IsWebSession = false;
+            OnBytesReceived?.Invoke(this, buf);
         }
     }
 }

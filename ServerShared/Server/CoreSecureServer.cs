@@ -2,12 +2,11 @@
 using ModdableWebServer.Servers;
 using System.Collections.Concurrent;
 using System.Net;
-using ServerShared.Interfaces;
 
 namespace ServerShared.Server;
 
 /// <inheritdoc/>
-public class CoreSecureServer(SslContext context, int port) : WSS_Server(context, IPAddress.Any, port), IServer
+public class CoreSecureServer(SslContext context, int port) : WSS_Server(context, IPAddress.Any, port)
 {
     /// <summary>
     /// Thread safe <see cref="CoreSecureSession"/> list.

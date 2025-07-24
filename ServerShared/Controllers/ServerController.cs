@@ -1,11 +1,10 @@
-﻿using ModdableWebServer.Attributes;
-using ModdableWebServer.Helper;
-using NetCoreServer;
+﻿using NetCoreServer;
 using Serilog;
 using ServerShared.Server;
 using System.Net.Sockets;
-using System.Reflection;
 using ServerShared.CommonModels;
+using ModdableWebServer;
+using ModdableWebServer.Interfaces;
 
 namespace ServerShared.Controllers;
 
@@ -14,56 +13,57 @@ namespace ServerShared.Controllers;
 /// </summary>
 public static class ServerController
 {
-    readonly static Assembly ServerManagerAssembly = Assembly.GetAssembly(typeof(ServerController))!;
-    readonly static Dictionary<string, Dictionary<HTTPAttribute, MethodInfo>> HTTP_Plugins = [];
-    readonly static Dictionary<string, Dictionary<WSAttribute, MethodInfo>> WS_Plugins = [];
-    readonly static Dictionary<HTTPAttribute, MethodInfo> Main_HTTP = AttributeMethodHelper.GetMethodAndAttribute<HTTPAttribute>(ServerManagerAssembly);
-    readonly static Dictionary<WSAttribute, MethodInfo> Main_WS = AttributeMethodHelper.GetMethodAndAttribute<WSAttribute>(ServerManagerAssembly);
     readonly static List<ServerModel> InternalServers = [];
-
-    static ServerController()
-    {
-        ArgumentNullException.ThrowIfNull(ServerManagerAssembly, nameof(ServerManagerAssembly));
-    }
 
     /// <summary>
     /// Starting the servers.
-    /// <param name="servers">A list of models for server creation/starting</param>
     /// </summary>
+    /// <param name="servers">A list of models for server creation / starting.</param>
     public static void Start(List<ServerModel> servers)
     {
-        foreach (ServerModel server in InternalServers)
+        foreach (ServerModel server in servers)
             Start(server);
     }
 
     /// <summary>
     /// Starting the servers.
-    /// <param name="serverModel">A model for server creation/starting</param>
     /// </summary>
+    /// <param name="serverModel">A model for server creation/starting.</param>
     public static void Start(ServerModel serverModel)
     {
         if (serverModel.Context != null)
         {
             CoreSecureServer srv = new(serverModel.Context, serverModel.Port);
-            srv.DoReturn404IfFail = false;
-            srv.ReceivedFailed += Failed;
-            srv.OnSocketError += OnSocketError;
-            srv.ReceivedRequestError += RecvReqError;
             srv.Context.ClientCertificateRequired = false;
             serverModel.Server = srv;
         }
         else
         {
             CoreUnsecureServer srv = new(serverModel.Port);
-            srv.DoReturn404IfFail = false;
-            srv.ReceivedFailed += Failed;
-            srv.OnSocketError += OnSocketError;
-            srv.ReceivedRequestError += RecvReqError;
             serverModel.Server = srv;
         }
+        serverModel.Server.DoReturn404IfFail = false;
+        ServerEvents.ReceivedFailed += ServerEvents_ReceivedFailed;
+        ServerEvents.SocketError += ServerEvents_SocketError;
+        ServerEvents.ReceivedRequestError += ServerEvents_ReceivedRequestError;
         serverModel.Server.Start();
         InternalServers.Add(serverModel);
         Log.Information("Server started on {Port}!", serverModel.Port);
+    }
+
+    private static void ServerEvents_ReceivedRequestError(IServer arg1, HttpRequest arg2, string arg3)
+    {
+        Log.Error("RecvReqError! {ServerId} {ServerPort} {url}, {error}", arg1.Id, arg1.Port, arg2.Url, arg3);
+    }
+
+    private static void ServerEvents_SocketError(IServer arg1, SocketError arg2)
+    {
+        Log.Error("OnSocketError! {ServerId} {ServerPort} {error}", arg1.Id, arg1.Port, arg2);
+    }
+
+    private static void ServerEvents_ReceivedFailed(IServer arg1, HttpRequest request)
+    {
+        File.AppendAllText("REQUESTED.txt", $"{request.Method}\n{request.Url}\n{request.Body}\n{request}");
     }
 
     /// <summary>
@@ -78,25 +78,18 @@ public static class ServerController
         Log.Information("Servers stopped.");
     }
 
+    /// <summary>
+    ///List of existing <see cref="ServerModel"/>'s.
+    /// </summary>
     public static IEnumerable<ServerModel> Servers => InternalServers;
 
+    /// <summary>
+    /// Checking if the <paramref name="port"/> being used by <see cref="Servers"/>.
+    /// </summary>
+    /// <param name="port">Port</param>
+    /// <returns></returns>
     public static bool IsPortUsed(int port)
     {
         return InternalServers.Any(server => server.Port == port);
-    }
-
-    private static void RecvReqError(object? sender, (HttpRequest request, string error) e)
-    {
-        Log.Error("RecvReqError! {url}, {error}", e.request.Url, e.error);
-    }
-
-    private static void OnSocketError(object? sender, SocketError e)
-    {
-        Log.Error("OnSocketError! {error}", e);
-    }
-
-    private static void Failed(object? sender, HttpRequest request)
-    {
-        File.AppendAllText("REQUESTED.txt", $"{request.Method}\n{request.Url}\n{request.Body}\n{request}");
     }
 }
