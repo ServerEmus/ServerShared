@@ -2,12 +2,11 @@
 using ModdableWebServer.Servers;
 using System.Collections.Concurrent;
 using System.Net;
-using ServerShared.Interfaces;
 
 namespace ServerShared.Server;
 
 /// <inheritdoc/>
-public class CoreUnsecureServer(int port) : WS_Server(IPAddress.Any, port), IServer
+public class CoreUnsecureServer(int port) : WS_Server(IPAddress.Any, port)
 {
     /// <summary>
     /// Thread safe <see cref="CoreUnsecureSession"/> list.

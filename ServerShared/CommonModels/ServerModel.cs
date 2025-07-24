@@ -1,3 +1,4 @@
+using ModdableWebServer.Interfaces;
 using NetCoreServer;
 using ServerShared.Interfaces;
 
