@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using ServerShared.Interfaces;
 using System.Reflection;
+using System.Runtime.Loader;
 
 namespace ServerShared.Controllers;
 
@@ -9,25 +10,26 @@ namespace ServerShared.Controllers;
 /// </summary>
 public static class PluginController
 {
+    static PluginController()
+    {
+        MainLoadContext.Unloading += MainLoadContext_Unloading;
+        MainLoadContext.Resolving += MainLoadContext_Resolving;
+    }
+    private static readonly AssemblyLoadContext MainLoadContext = AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly()) ?? AssemblyLoadContext.Default;
     private static readonly Dictionary<string, IPlugin> pluginsList = [];
-    
+    private static bool isDependenciesLoaded = false;
+    private static readonly string Dir = Directory.GetCurrentDirectory();
+
+
     /// <summary>
     /// Load all plugins from Plugins directory.
     /// </summary>
     public static void LoadPlugins()
     {
-        string currdir = Directory.GetCurrentDirectory();
-        
-        string pluginsPath = Path.Combine(currdir, "Plugins");
+        LoadDependencies();
+        string pluginsPath = Path.Combine(Dir, "Plugins");
         if (!Directory.Exists(pluginsPath))
             Directory.CreateDirectory(pluginsPath);
-
-        string DependenciesPath = Path.Combine(currdir, "Dependencies");
-        if (!Directory.Exists(DependenciesPath))
-            Directory.CreateDirectory(DependenciesPath);
-
-        foreach (string file in Directory.GetFiles(DependenciesPath, "*.dll"))
-            Assembly.LoadFile(file);
 
         List<IPlugin> plugins = [];
         List<Assembly> LoadedAssemblies = [];
@@ -35,20 +37,22 @@ public static class PluginController
         {
             if (file.Contains(".ignore"))
                 continue;
-            var assemlby = Assembly.LoadFile(file);
+            var assemlby = MainLoadContext.LoadFromAssemblyPath(file);
             if (assemlby == null)
                 continue;
+            Log.Information("Plugin {asm} loaded!", assemlby.GetName().Name);
             LoadedAssemblies.Add(assemlby);
         }
         foreach (var assemlby in LoadedAssemblies)
         {
             foreach (Type type in assemlby.GetTypes())
             {
-                if (!typeof(IPlugin).IsAssignableFrom(type) || type.IsAbstract)
+                if (!typeof(IPlugin).IsAssignableFrom(type))
                     continue;
 
-                // We create an instance of the type and check if it was successfully created.
-                if (Activator.CreateInstance(type) is not IPlugin plugin)
+                IPlugin? plugin = (IPlugin?)Activator.CreateInstance(type);
+
+                if (plugin is null)
                     continue;
 
                 plugins.Add(plugin);
@@ -86,7 +90,7 @@ public static class PluginController
         var path = Path.Combine(currdir, "Plugins", $"{DllName}.dll");
         if (!File.Exists(path))
             return;
-        var assemlby = Assembly.LoadFile(path);
+        var assemlby = MainLoadContext.LoadFromAssemblyPath(path);
         if (assemlby == null)
             return;
         foreach (Type type in assemlby.GetTypes())
@@ -120,6 +124,43 @@ public static class PluginController
     private static void PluginInit(IPlugin iPlugin)
     {
         iPlugin.Initialize();
-        Log.Debug("New Plugin Loaded! {Name}, {Priority} ", iPlugin.Name, iPlugin.Priority);
+        Log.Debug("New Plugin Loaded! With name as {Name} and priority as {Priority}.", iPlugin.Name, iPlugin.Priority);
     }
+
+    private static void LoadDependencies()
+    {
+        if (isDependenciesLoaded)
+            return;
+
+        string DependenciesPath = Path.Combine(Dir, "Dependencies");
+        if (!Directory.Exists(DependenciesPath))
+            Directory.CreateDirectory(DependenciesPath);
+
+        foreach (string file in Directory.GetFiles(DependenciesPath, "*.dll"))
+        {
+            var asm = MainLoadContext.LoadFromAssemblyPath(file);
+            Log.Debug("Assembly {asm} loaded as Dependency!", asm.GetName().Name);
+        }
+
+        isDependenciesLoaded = true;
+    }
+
+    private static Assembly? MainLoadContext_Resolving(AssemblyLoadContext context, AssemblyName assemblyName)
+    {
+        var asm = context.Assemblies.Where(x => x.GetName().FullName == assemblyName.FullName).FirstOrDefault();
+        if (asm != null)
+            return asm;
+
+        Log.Warning("ERROR! You are missing a Dependency! Name: {AssemblyName}", assemblyName);
+        File.WriteAllText("Context_ASM.txt", string.Join("\n", context.Assemblies.Select(x => x.GetName().FullName)));
+        return null;
+    }
+
+    private static void MainLoadContext_Unloading(AssemblyLoadContext obj)
+    {
+        Log.Verbose("MainLoadContext_Unloading");
+        if (obj.IsCollectible)
+            obj.Unload();
+    }
+
 }
