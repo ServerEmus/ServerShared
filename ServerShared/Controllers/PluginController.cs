@@ -20,15 +20,26 @@ public static class PluginController
         string pluginsPath = Path.Combine(currdir, "Plugins");
         if (!Directory.Exists(pluginsPath))
             Directory.CreateDirectory(pluginsPath);
+        string DependenciesPath = Path.Combine(currdir, "Dependencies");
+        if (!Directory.Exists(DependenciesPath))
+            Directory.CreateDirectory(DependenciesPath);
+
+        foreach (string file in Directory.GetFiles(DependenciesPath, "*.dll"))
+            Assembly.LoadFile(file);
 
         List<IPlugin> plugins = [];
+        List<Assembly> LoadedAssemblies = [];
         foreach (string file in Directory.GetFiles(pluginsPath, "*.dll"))
         {
-            if (file.Contains("ignore"))
+            if (file.Contains(".ignore"))
                 continue;
             var assemlby = Assembly.LoadFile(file);
             if (assemlby == null)
                 continue;
+            LoadedAssemblies.Add(assemlby);
+        }
+        foreach (var assemlby in LoadedAssemblies)
+        {
             foreach (Type type in assemlby.GetTypes())
             {
                 if (!typeof(IPlugin).IsAssignableFrom(type) || type.IsAbstract)
