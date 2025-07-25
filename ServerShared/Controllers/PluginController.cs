@@ -17,9 +17,11 @@ public static class PluginController
     public static void LoadPlugins()
     {
         string currdir = Directory.GetCurrentDirectory();
+        
         string pluginsPath = Path.Combine(currdir, "Plugins");
         if (!Directory.Exists(pluginsPath))
             Directory.CreateDirectory(pluginsPath);
+
         string DependenciesPath = Path.Combine(currdir, "Dependencies");
         if (!Directory.Exists(DependenciesPath))
             Directory.CreateDirectory(DependenciesPath);
