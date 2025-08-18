@@ -73,12 +73,6 @@ public static class CommandController
         Run(splitted[0], splitted[1..]);
     }
 
-    /// <summary>
-    /// Empty command.
-    /// </summary>
-    /// <param name="_"></param>
-    public static void Empty(string[] _) {}
-
     private static void Help(string[] _)
     {
         Console.WriteLine("Commands:");

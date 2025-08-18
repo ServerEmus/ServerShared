@@ -1,6 +1,5 @@
 using ModdableWebServer.Interfaces;
 using NetCoreServer;
-using ServerShared.Interfaces;
 
 namespace ServerShared.CommonModels;
 
@@ -28,5 +27,4 @@ public class ServerModel
     /// The Server if exists.
     /// </summary>
     public IServer? Server { get; set; }
-
 }

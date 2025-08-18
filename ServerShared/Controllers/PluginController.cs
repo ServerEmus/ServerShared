@@ -1,12 +1,12 @@
 ﻿using Serilog;
-using ServerShared.Interfaces;
+using ServerShared.Plugins;
 using System.Reflection;
 using System.Runtime.Loader;
 
 namespace ServerShared.Controllers;
 
 /// <summary>
-/// Managing <see cref="IPlugin"/>. (Load, Unload, Calls)
+/// Managing <see cref="Plugin"/>. (Load, Unload, Calls)
 /// </summary>
 public static class PluginController
 {
@@ -16,7 +16,7 @@ public static class PluginController
         MainLoadContext.Resolving += MainLoadContext_Resolving;
     }
     private static readonly AssemblyLoadContext MainLoadContext = AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly()) ?? AssemblyLoadContext.Default;
-    private static readonly Dictionary<string, IPlugin> pluginsList = [];
+    private static readonly Dictionary<string, Plugin> pluginsList = [];
     private static bool isDependenciesLoaded = false;
     private static readonly string Dir = Directory.GetCurrentDirectory();
 
@@ -31,7 +31,7 @@ public static class PluginController
         if (!Directory.Exists(pluginsPath))
             Directory.CreateDirectory(pluginsPath);
 
-        List<IPlugin> plugins = [];
+        List<Plugin> plugins = [];
         List<Assembly> LoadedAssemblies = [];
         foreach (string file in Directory.GetFiles(pluginsPath, "*.dll"))
         {
@@ -47,19 +47,20 @@ public static class PluginController
         {
             foreach (Type type in assemlby.GetTypes())
             {
-                if (!typeof(IPlugin).IsAssignableFrom(type))
+                if (type.IsAbstract)
                     continue;
 
-                IPlugin? plugin = (IPlugin?)Activator.CreateInstance(type);
+                if (!type.IsSubclassOf(typeof(Plugin)))
+                    continue;
 
-                if (plugin is null)
+                if (Activator.CreateInstance(type) is not Plugin plugin)
                     continue;
 
                 plugins.Add(plugin);
             }
         }
         plugins = [.. plugins.OrderBy(x => x.Priority)];
-        foreach (IPlugin iPlugin in plugins)
+        foreach (Plugin iPlugin in plugins)
         {
             if (pluginsList.TryAdd(iPlugin.Name, iPlugin))
                 PluginInit(iPlugin);
@@ -69,13 +70,12 @@ public static class PluginController
     /// <summary>
     /// Unload all plugins.
     /// </summary>
-    public static void UnloadPlugins()
+    public static void DisablePlugins()
     {
         foreach (var plugin in pluginsList)
         {
-            plugin.Value.ShutDown();
-            plugin.Value.Dispose();
-            Log.Debug("Plugin {pluginName} is now unloaded!", plugin.Key);
+            plugin.Value.Disable();
+            Log.Debug("Plugin {pluginName} is now disabled!", plugin.Key);
         }
         pluginsList.Clear();
     }
@@ -95,11 +95,14 @@ public static class PluginController
             return;
         foreach (Type type in assemlby.GetTypes())
         {
-            if (!typeof(IPlugin).IsAssignableFrom(type) || type.IsAbstract)
-                    continue;
+            if (type.IsAbstract)
+                continue;
+
+            if (!type.IsSubclassOf(typeof(Plugin)))
+                continue;
 
             // We create an instance of the type and check if it was successfully created.
-            if (Activator.CreateInstance(type) is not IPlugin plugin)
+            if (Activator.CreateInstance(type) is not Plugin plugin)
                 continue;
 
             if (pluginsList.TryAdd(plugin.Name, plugin))
@@ -111,19 +114,19 @@ public static class PluginController
     /// Unload specific <paramref name="pluginName"/>.
     /// </summary>
     /// <param name="pluginName">Name of the plugin</param>
-    public static void UnloadPlugin(string pluginName)
+    public static void Disable(string pluginName)
     {
         if (!pluginsList.TryGetValue(pluginName, out var plugin))
             return;
-        plugin.ShutDown();
-        plugin.Dispose();
+        plugin.Disable();
         pluginsList.Remove(pluginName);
         Log.Debug("Plugin {pluginName} is now unloaded!", pluginName);
     }
 
-    private static void PluginInit(IPlugin iPlugin)
+    private static void PluginInit(Plugin iPlugin)
     {
-        iPlugin.Initialize();
+        iPlugin.LoadConfigs();
+        iPlugin.Enable();
         Log.Debug("New Plugin Loaded! With name as {Name} and priority as {Priority}.", iPlugin.Name, iPlugin.Priority);
     }
 
