@@ -68,13 +68,13 @@ public static class PluginController
     }
 
     /// <summary>
-    /// Unload all plugins.
+    /// Stops all plugins.
     /// </summary>
-    public static void DisablePlugins()
+    public static void StopPlugins()
     {
         foreach (var plugin in pluginsList)
         {
-            plugin.Value.Disable();
+            plugin.Value.Stop();
             Log.Debug("Plugin {pluginName} is now disabled!", plugin.Key);
         }
         pluginsList.Clear();
@@ -111,14 +111,14 @@ public static class PluginController
     }
 
     /// <summary>
-    /// Unload specific <paramref name="pluginName"/>.
+    /// Stops specific <paramref name="pluginName"/>.
     /// </summary>
     /// <param name="pluginName">Name of the plugin</param>
-    public static void Disable(string pluginName)
+    public static void StopPlugin(string pluginName)
     {
         if (!pluginsList.TryGetValue(pluginName, out var plugin))
             return;
-        plugin.Disable();
+        plugin.Stop();
         pluginsList.Remove(pluginName);
         Log.Debug("Plugin {pluginName} is now unloaded!", pluginName);
     }
@@ -126,7 +126,7 @@ public static class PluginController
     private static void PluginInit(Plugin iPlugin)
     {
         iPlugin.LoadConfigs();
-        iPlugin.Enable();
+        iPlugin.Start();
         Log.Debug("New Plugin Loaded! With name as {Name} and priority as {Priority}.", iPlugin.Name, iPlugin.Priority);
     }
 

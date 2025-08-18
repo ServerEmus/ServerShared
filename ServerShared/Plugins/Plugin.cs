@@ -16,14 +16,14 @@ public abstract class Plugin
     public abstract string Name { get; }
 
     /// <summary>
-    /// Called when the <see cref="Plugin"/> is enabled.
+    /// Called when the <see cref="Plugin"/> is started.
     /// </summary>
-    public abstract void Enable();
+    public abstract void Start();
 
     /// <summary>
-    /// Called when the <see cref="Plugin"/> is disabled.
+    /// Called when the <see cref="Plugin"/> is stopped.
     /// </summary>
-    public abstract void Disable();
+    public abstract void Stop();
 
     /// <summary>
     /// Called before the <see cref="Plugin"/> is enabled.

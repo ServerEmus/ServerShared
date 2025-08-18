@@ -27,6 +27,11 @@ public static class JsonController
     {
         T? instance = new();
         string filePath = Path.Combine(Directory.GetCurrentDirectory(), "Configs" , fileName);
+        string? dirPath = Path.GetDirectoryName(filePath);
+        if (string.IsNullOrEmpty(dirPath))
+            return instance;
+        if (!Directory.Exists(dirPath))
+            Directory.CreateDirectory(dirPath);
         if (File.Exists(filePath))
             instance = JsonSerializer.Deserialize<T>(File.ReadAllText(filePath));
         instance ??= new();
@@ -43,6 +48,11 @@ public static class JsonController
     public static void Save<T>(T value, string fileName) where T : new()
     {
         string filePath = Path.Combine(Directory.GetCurrentDirectory(), "Configs", fileName);
+        string? dirPath = Path.GetDirectoryName(filePath);
+        if (string.IsNullOrEmpty(dirPath))
+            return;
+        if (!Directory.Exists(dirPath))
+            Directory.CreateDirectory(dirPath);
         File.WriteAllText(filePath, JsonSerializer.Serialize(value, SerializerOptions));
     }
 }

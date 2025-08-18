@@ -14,8 +14,8 @@
 		<Copyright>$(Company)</Copyright>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<AssemblyName>ServerEmus.ServerShared</AssemblyName>
-		<Version>0.0.4</Version>
-		<FileVersion>0.0.4</FileVersion>
+		<Version>0.0.5</Version>
+		<FileVersion>0.0.5</FileVersion>
 		<AssemblyVersion>$(FileVersion)</AssemblyVersion>
 	</PropertyGroup>
 
