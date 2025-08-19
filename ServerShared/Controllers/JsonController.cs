@@ -15,6 +15,7 @@ public static class JsonController
         WriteIndented = true,
         IndentCharacter = '\t',
         IndentSize = 1,
+        ReadCommentHandling = JsonCommentHandling.Skip
     };
 
     /// <summary>
@@ -33,7 +34,7 @@ public static class JsonController
         if (!Directory.Exists(dirPath))
             Directory.CreateDirectory(dirPath);
         if (File.Exists(filePath))
-            instance = JsonSerializer.Deserialize<T>(File.ReadAllText(filePath));
+            instance = JsonSerializer.Deserialize<T>(File.ReadAllText(filePath), SerializerOptions);
         instance ??= new();
         File.WriteAllText(filePath, JsonSerializer.Serialize(instance, SerializerOptions));
         return instance;
