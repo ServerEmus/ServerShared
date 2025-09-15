@@ -50,8 +50,9 @@ public class CoreUdpServer(int port) : UdpServer(IPAddress.Any, port) , IServer
     /// <inheritdoc/>
     public bool DisconnectAll()
     {
-        throw new NotImplementedException();
+        return true;
     }
+
     bool IServer.Multicast(ReadOnlySpan<byte> buffer)
     {
         return Multicast(buffer) != buffer.Length;

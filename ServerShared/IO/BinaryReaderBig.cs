@@ -1,13 +1,21 @@
 ﻿using ServerShared.Types;
 using System.Buffers.Binary;
+using System.Text;
 
 namespace ServerShared.IO;
 
 /// <summary>
 /// <see cref="BinaryReader"/> but reading as Big Endian.
 /// </summary>
-public class BinaryReaderBig(Stream input) : BinaryReader(input)
+/// <inheritdoc/>
+public class BinaryReaderBig(Stream input, Encoding encoding, bool leaveOpen) : BinaryReader(input, encoding, leaveOpen)
 {
+    /// <inheritdoc/>
+    public BinaryReaderBig(Stream input) : this(input, Encoding.UTF8, false) { }
+
+    /// <inheritdoc/>
+    public BinaryReaderBig(Stream input, Encoding encoding) : this(input, encoding, false) { }
+
     /// <inheritdoc/>
     public override Half ReadHalf()
     {
@@ -110,5 +118,34 @@ public class BinaryReaderBig(Stream input) : BinaryReader(input)
     public override ulong ReadUInt64()
     {
         return BinaryPrimitives.ReadUInt64BigEndian(base.ReadBytes(8));
+    }
+
+    /// <summary>
+    /// Reading a <typeparamref name="T"/> from the current stream and advances the current position of the stream.
+    /// </summary>
+    /// <returns>A <typeparamref name="T"/> from the current stream.</returns>
+    public T ReadSerializable<T>() where T : IBigSerializable, new()
+    {
+        T t = new();
+        ReadSerializable(ref t);
+        return t;
+    }
+
+    /// <summary>
+    /// Reading a <typeparamref name="T"/> from the current stream and advances the current position of the stream.
+    /// </summary>
+    /// <returns>A <typeparamref name="T"/> from the current stream.</returns>
+    public void ReadSerializable<T>(ref T t) where T : IBigSerializable
+    {
+        t.Deserialize(this);
+    }
+
+    /// <summary>
+    /// Reading a <typeparamref name="T"/> from the current stream and advances the current position of the stream.
+    /// </summary>
+    /// <returns>A <typeparamref name="T"/> from the current stream.</returns>
+    public T? ReadInstanceSerializable<T>() where T : IBigInstanceSerializable<T>
+    {
+        return T.Parse(this);
     }
 }

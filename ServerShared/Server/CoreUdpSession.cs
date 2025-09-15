@@ -5,6 +5,8 @@ namespace ServerShared.Server;
 /// <inheritdoc/>
 public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server)
 {
+    // TODO: Add events here!!
+
     /// <summary>
     /// Session Id
     /// </summary>

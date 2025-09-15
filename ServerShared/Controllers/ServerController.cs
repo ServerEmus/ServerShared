@@ -31,15 +31,24 @@ public static class ServerController
     /// <param name="serverModel">A model for server creation/starting.</param>
     public static void Start(ServerModel serverModel)
     {
-        if (serverModel.Context != null)
+        if (serverModel.Context != null && !serverModel.IsUdp)
         {
             CoreSecureServer srv = new(serverModel.Context, serverModel.Port);
             srv.Context.ClientCertificateRequired = false;
             serverModel.Server = srv;
         }
-        else
+        else if (!serverModel.IsUdp)
         {
             CoreUnsecureServer srv = new(serverModel.Port);
+            serverModel.Server = srv;
+        }
+        else if (serverModel.Context != null && serverModel.IsUdp)
+        {
+            // TODO:
+        }
+        else
+        {
+            CoreUdpServer srv = new(serverModel.Port);
             serverModel.Server = srv;
         }
         serverModel.Server.DoReturn404IfFail = false;
