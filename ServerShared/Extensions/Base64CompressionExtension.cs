@@ -1,7 +1,4 @@
-using ICSharpCode.SharpZipLib.Zip.Compression;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System.Text;
-using ZstdNet;
 
 namespace ServerShared.Extensions;
 
@@ -10,98 +7,47 @@ namespace ServerShared.Extensions;
 /// </summary>
 public static class Base64CompressionExtension
 {
-    #region ZSTD
     /// <summary>
-    /// Compress string with ZSTD
+    /// Compress string with <paramref name="compressionType"/>.
     /// </summary>
     /// <param name="str">To Compress</param>
+    /// <param name="compressionType">Compression Type</param>
     /// <returns>String as Base64</returns>
-    public static string GetZstdB64(string str)
+    public static string ToCompressedBase64(string str, CompressionType compressionType = CompressionType.Zstd)
     {
-        return GetZstdB64(Encoding.UTF8.GetBytes(str));
+        return ToCompressedBase64(Encoding.UTF8.GetBytes(str), compressionType);
     }
 
     /// <summary>
-    /// Compress bytes with ZSTD
+    /// Compress bytes with <paramref name="compressionType"/>.
     /// </summary>
     /// <param name="bytes">To Compress</param>
+    /// <param name="compressionType">Compression Type</param>
     /// <returns>String as Base64</returns>
-    public static string GetZstdB64(byte[] bytes)
+    public static string ToCompressedBase64(byte[] bytes, CompressionType compressionType = CompressionType.Zstd)
     {
-        using MemoryStream mem = new();
-        using Compressor compressorZstd = new();
-        mem.Write(compressorZstd.Wrap(bytes));
-        return Convert.ToBase64String(mem.ToArray());
+        return Convert.ToBase64String(DeCompExtension.Compress(compressionType, bytes));
     }
 
     /// <summary>
-    /// Decompress string with ZSTD
+    /// Decompress string with <paramref name="compressionType"/>.
     /// </summary>
     /// <param name="str">To Decompress</param>
+    /// <param name="compressionType">Compression Type</param>
     /// <returns>String as Base64</returns>
-    public static string GetUnZstdB64(string str)
+    public static string FromCompressedBase64(string str, CompressionType compressionType = CompressionType.Zstd)
     {
-        return GetUnZstdB64(Encoding.UTF8.GetBytes(str));
+        return FromCompressedBase64(Convert.FromBase64String(str), compressionType);
     }
 
     /// <summary>
-    /// Decompress bytes with ZSTD
+    /// Decompress bytes with <paramref name="compressionType"/>.
     /// </summary>
     /// <param name="bytes">To Decompress</param>
+    /// <param name="compressionType">Compression Type</param>
     /// <returns>String as Base64</returns>
-    public static string GetUnZstdB64(byte[] bytes)
+    public static string FromCompressedBase64(byte[] bytes, CompressionType compressionType = CompressionType.Zstd)
     {
-        using MemoryStream mem = new();
-        using Decompressor decompressor = new();
-        mem.Write(decompressor.Unwrap(bytes));
-        return Convert.ToBase64String(mem.ToArray());
+        return Encoding.UTF8.GetString(DeCompExtension.Decompress(compressionType, bytes, 0));
     }
-    #endregion
-    #region Deflate
-    /// <summary>
-    /// Compress string with Deflate
-    /// </summary>
-    /// <param name="str">To Compress</param>
-    /// <returns>String as Base64</returns>
-    public static string GetDeflateB64(string str)
-    {
-        return GetDeflateB64(Encoding.UTF8.GetBytes(str));
-    }
-
-    /// <summary>
-    /// Compress bytes with Deflate
-    /// </summary>
-    /// <param name="bytes">To Compress</param>
-    /// <returns>String as Base64</returns>
-    public static string GetDeflateB64(byte[] bytes)
-    {
-        using MemoryStream mem = new();
-        using DeflaterOutputStream deflate = new(mem, new(Deflater.BEST_COMPRESSION, false));
-        deflate.Write(bytes);
-        return Convert.ToBase64String(mem.ToArray());
-    }
-
-    /// <summary>
-    /// Decompress string with Deflate
-    /// </summary>
-    /// <param name="str">To Decompress</param>
-    /// <returns>String as Base64</returns>
-    public static string GetUnDeflateB64(string str)
-    {
-        return GetUnDeflateB64(Encoding.UTF8.GetBytes(str));
-    }
-
-    /// <summary>
-    /// Decompress bytes with Deflate
-    /// </summary>
-    /// <param name="bytes">To Decompress</param>
-    /// <returns>String as Base64</returns>
-    public static string GetUnDeflateB64(byte[] bytes)
-    {
-        using MemoryStream mem = new();
-        using InflaterInputStream inf = new(mem);
-        inf.ReadExactly(bytes);
-        return Convert.ToBase64String(mem.ToArray());
-    }
-    #endregion
 }

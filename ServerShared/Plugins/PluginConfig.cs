@@ -6,13 +6,13 @@ namespace ServerShared.Plugins;
 /// <summary>
 /// Interface for accepting a configuration file as a generic type.
 /// </summary>
-/// <typeparam name="TConfig">The configuration of the <see cref="Plugin"/>.</typeparam>
-public abstract class Plugin<TConfig> : Plugin where TConfig : new()
+/// <typeparam name="TConfig">The configuration of the <see cref="ServerPlugin"/>.</typeparam>
+public abstract class ServerPlugin<TConfig> : ServerPlugin where TConfig : new()
 {
     /// <summary>
-    /// The configuration of the <see cref="Plugin"/>.
+    /// The configuration of the <see cref="ServerPlugin"/>.
     /// </summary>
-    public virtual TConfig? Config { get; set; }
+    public virtual TConfig Config { get; set; } = new();
 
     /// <summary>
     /// The file name of the configuration file.
@@ -28,7 +28,7 @@ public abstract class Plugin<TConfig> : Plugin where TConfig : new()
     }
 
     /// <summary>
-    /// Saves the configuration of the <see cref="Plugin"/> to its configuration file.
+    /// Saves the configuration of the <see cref="ServerPlugin"/> to its configuration file.
     /// </summary>
     public void SaveConfig()
     {

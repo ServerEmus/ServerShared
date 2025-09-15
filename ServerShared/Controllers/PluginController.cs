@@ -6,7 +6,7 @@ using System.Runtime.Loader;
 namespace ServerShared.Controllers;
 
 /// <summary>
-/// Managing <see cref="Plugin"/>. (Load, Unload, Calls)
+/// Managing <see cref="ServerPlugin"/>. (Load, Unload, Calls)
 /// </summary>
 public static class PluginController
 {
@@ -16,7 +16,7 @@ public static class PluginController
         MainLoadContext.Resolving += MainLoadContext_Resolving;
     }
     private static readonly AssemblyLoadContext MainLoadContext = AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly()) ?? AssemblyLoadContext.Default;
-    private static readonly Dictionary<string, Plugin> pluginsList = [];
+    private static readonly Dictionary<string, ServerPlugin> pluginsList = [];
     private static bool isDependenciesLoaded = false;
     private static readonly string Dir = Directory.GetCurrentDirectory();
 
@@ -31,7 +31,7 @@ public static class PluginController
         if (!Directory.Exists(pluginsPath))
             Directory.CreateDirectory(pluginsPath);
 
-        List<Plugin> plugins = [];
+        List<ServerPlugin> plugins = [];
         List<Assembly> LoadedAssemblies = [];
         foreach (string file in Directory.GetFiles(pluginsPath, "*.dll"))
         {
@@ -50,17 +50,17 @@ public static class PluginController
                 if (type.IsAbstract)
                     continue;
 
-                if (!type.IsSubclassOf(typeof(Plugin)))
+                if (!type.IsSubclassOf(typeof(ServerPlugin)))
                     continue;
 
-                if (Activator.CreateInstance(type) is not Plugin plugin)
+                if (Activator.CreateInstance(type) is not ServerPlugin plugin)
                     continue;
 
                 plugins.Add(plugin);
             }
         }
         plugins = [.. plugins.OrderBy(x => x.Priority)];
-        foreach (Plugin iPlugin in plugins)
+        foreach (ServerPlugin iPlugin in plugins)
         {
             if (pluginsList.TryAdd(iPlugin.Name, iPlugin))
                 PluginInit(iPlugin);
@@ -98,11 +98,11 @@ public static class PluginController
             if (type.IsAbstract)
                 continue;
 
-            if (!type.IsSubclassOf(typeof(Plugin)))
+            if (!type.IsSubclassOf(typeof(ServerPlugin)))
                 continue;
 
             // We create an instance of the type and check if it was successfully created.
-            if (Activator.CreateInstance(type) is not Plugin plugin)
+            if (Activator.CreateInstance(type) is not ServerPlugin plugin)
                 continue;
 
             if (pluginsList.TryAdd(plugin.Name, plugin))
@@ -123,7 +123,7 @@ public static class PluginController
         Log.Debug("Plugin {pluginName} is now unloaded!", pluginName);
     }
 
-    private static void PluginInit(Plugin iPlugin)
+    private static void PluginInit(ServerPlugin iPlugin)
     {
         iPlugin.LoadConfigs();
         iPlugin.Start();

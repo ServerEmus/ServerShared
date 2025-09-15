@@ -1,9 +1,10 @@
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using LzhamWrapper;
+using LzhamWrapper.Enums;
 using lzo.net;
-using System.IO.Compression;
 using ZstdNet;
+using Ionic.Zlib;
 
 namespace ServerShared.Extensions;
 
@@ -24,52 +25,50 @@ public static class DeCompExtension
         MemoryStream ms = new((int)outputsize);
         switch (compressionType)
         {
-            case CompressionType.None:
-                return bytesToDecompress;
             case CompressionType.Zstd:
-                Decompressor decompressorZstd = new();
-                byte[] returner = decompressorZstd.Unwrap(bytesToDecompress);
-                decompressorZstd.Dispose();
-                return returner;
+                {
+                    using Decompressor decompressorZstd = new();
+                    return decompressorZstd.Unwrap(bytesToDecompress);
+                }
             case CompressionType.Deflate:
-                InflaterInputStream decompressor = new(new MemoryStream(bytesToDecompress), new(false));
-                decompressor.CopyTo(ms);
-                decompressor.Dispose();
-                return ms.ToArray();
+                {
+                    using InflaterInputStream decompressor = new(new MemoryStream(bytesToDecompress), new(false));
+                    decompressor.CopyTo(ms);
+                    return ms.ToArray();
+                }
             case CompressionType.UplayLzham:
                 {
                     DecompressionParameters parameters = new()
                     {
-                        Flags = LzhamWrapper.Enums.DecompressionFlag.ComputeAdler32,
+                        Flags = DecompressionFlag.ComputeAdler32,
                         DictionarySize = 26,
-                        UpdateRate = LzhamWrapper.Enums.TableUpdateRate.Default
+                        UpdateRate = TableUpdateRate.Default
                     };
-                    LzhamStream lzhamStream = new(new MemoryStream(bytesToDecompress), parameters);
+                    using LzhamStream lzhamStream = new(new MemoryStream(bytesToDecompress), parameters);
                     lzhamStream.CopyTo(ms);
-                    lzhamStream.Dispose();
                     return ms.ToArray();
                 }
             case CompressionType.Lzham:
                 {
                     DecompressionParameters parameters = new()
                     {
-                        Flags = LzhamWrapper.Enums.DecompressionFlag.ComputeAdler32 | LzhamWrapper.Enums.DecompressionFlag.ReadZlibStream,
+                        Flags = DecompressionFlag.ComputeAdler32 | DecompressionFlag.ReadZlibStream,
                         DictionarySize = 15,
-                        UpdateRate = LzhamWrapper.Enums.TableUpdateRate.Default
+                        UpdateRate = TableUpdateRate.Default
                     };
                     using LzhamStream lzhamStream = new(new MemoryStream(bytesToDecompress), parameters);
                     lzhamStream.CopyTo(ms);
-                    lzhamStream.Dispose();
                     return ms.ToArray();
                 }
             case CompressionType.LZO:
                 {
-                    using LzoStream decompressed = new(new MemoryStream(bytesToDecompress), CompressionMode.Decompress);
+                    using LzoStream decompressed = new(new MemoryStream(bytesToDecompress), System.IO.Compression.CompressionMode.Decompress);
                     decompressed.CopyTo(ms);
                     return ms.ToArray();
                 }
             case CompressionType.Zlib:
-                return Ionic.Zlib.ZlibStream.UncompressBuffer(bytesToDecompress);
+                return ZlibStream.UncompressBuffer(bytesToDecompress);
+            case CompressionType.None:
             default:
                 return bytesToDecompress;
         }
@@ -85,50 +84,45 @@ public static class DeCompExtension
     {
         switch (compressionType)
         {
-            case CompressionType.None:
-                return bytesToCompress;
             case CompressionType.Zstd:
                 {
-                    Compressor compressZstd = new();
-                    byte[] returner = compressZstd.Wrap(bytesToCompress);
-                    compressZstd.Dispose();
-                    return returner;
+                    using Compressor compressZstd = new();
+                    return compressZstd.Wrap(bytesToCompress);
                 }
             case CompressionType.Deflate:
                 {
                     MemoryStream ms = new();
                     Deflater defl = new(Deflater.BEST_COMPRESSION, false);
-                    DeflaterOutputStream deflate = new(ms, defl);
+                    using DeflaterOutputStream deflate = new(ms, defl);
                     deflate.Write(bytesToCompress);
-                    deflate.Close();
                     return ms.ToArray();
                 }
             case CompressionType.UplayLzham:
                 return [];
             case CompressionType.Lzham:
                 {
-                    uint adler = 0;
-                    byte[] output = new byte[bytesToCompress.Length * 2];
-                    int outsize = output.Length;
-                    Lzham.CompressMemory(new()
+                    CompressionParameters compressionParameters = new()
                     {
                         Flags = 0,
                         DictionarySize = 26,
-                        UpdateRate = LzhamWrapper.Enums.TableUpdateRate.Default,
+                        UpdateRate = TableUpdateRate.Default,
                         Level = LzhamWrapper.Enums.CompressionLevel.Uber
-                    }, bytesToCompress, bytesToCompress.Length, 0, output, ref outsize, 0, ref adler);
-                    return [.. output.Take(outsize)];
+                    };
+                    MemoryStream ms = new();
+                    using LzhamStream lzhamStream = new(ms, compressionParameters);
+                    lzhamStream.Write(bytesToCompress);
+                    return ms.ToArray();
                 }
             case CompressionType.LZO:
                 {
                     using MemoryStream mem = new();
-                    using LzoStream compress = new(mem, CompressionMode.Compress);
+                    using LzoStream compress = new(mem, System.IO.Compression.CompressionMode.Compress);
                     compress.Write(bytesToCompress);
-                    compress.Close();
                     return mem.ToArray();
                 }
             case CompressionType.Zlib:
-                return Ionic.Zlib.ZlibStream.CompressBuffer(bytesToCompress);
+                return ZlibStream.CompressBuffer(bytesToCompress);
+            case CompressionType.None:
             default:
                 return bytesToCompress;
         }
