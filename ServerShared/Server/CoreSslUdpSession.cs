@@ -3,7 +3,7 @@
 namespace ServerShared.Server;
 
 /// <inheritdoc/>
-public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server)
+public class CoreSslUdpSession(EndPoint endPoint, CoreSslUdpServer server)
 {
     /// <summary>
     /// Bytes received from Stream.
@@ -23,7 +23,7 @@ public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server)
     /// <summary>
     /// Server
     /// </summary>
-    public CoreUdpServer Server { get; } = server;
+    public CoreSslUdpServer Server { get; } = server;
 
     /// <summary>
     /// Handle buffer received notification

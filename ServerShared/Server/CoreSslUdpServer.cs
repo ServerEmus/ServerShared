@@ -6,15 +6,17 @@ using System.Net;
 namespace ServerShared.Server;
 
 /// <inheritdoc/>
-public class CoreUdpServer(int port) : UdpServer(IPAddress.Any, port) , IServer
+public class CoreSslUdpServer(SslContext context, int port) : UdpServer(IPAddress.Any, port) , IServer
 {
+    /// <summary>
+    /// SSL context
+    /// </summary>
+    public SslContext Context { get; } = context;
+
     /// <summary>
     /// Connected sessions.
     /// </summary>
-    public readonly ConcurrentDictionary<EndPoint, CoreUdpSession> Sessions = [];
-
-    /// <inheritdoc/>
-    public bool DoReturn404IfFail { get; set; } // TODO: Move this out.
+    public readonly ConcurrentDictionary<EndPoint, CoreSslUdpSession> Sessions = [];
 
     /// <inheritdoc/>
     public override void OnStarted()
@@ -28,13 +30,13 @@ public class CoreUdpServer(int port) : UdpServer(IPAddress.Any, port) , IServer
         base.OnReceived(endpoint, buffer, offset, size);
         if (!Sessions.ContainsKey(endpoint))
             Sessions[endpoint] = CreateSession(endpoint);
-        CoreUdpSession session = Sessions[endpoint];
+        CoreSslUdpSession session = Sessions[endpoint];
         session.Process(buffer.AsSpan((int)offset, (int)size));
         ReceiveAsync();
     }
 
     /// <inheritdoc/>
-    public virtual CoreUdpSession CreateSession(EndPoint endpoint)
+    public virtual CoreSslUdpSession CreateSession(EndPoint endpoint)
     {
         return new(endpoint, this);
     }
@@ -42,7 +44,7 @@ public class CoreUdpServer(int port) : UdpServer(IPAddress.Any, port) , IServer
     /// <inheritdoc/>
     public override void OnSent(EndPoint endpoint, long sent)
     {
-        if (!Sessions.TryGetValue(endpoint, out CoreUdpSession? session))
+        if (!Sessions.TryGetValue(endpoint, out CoreSslUdpSession? session))
             return;
         session.OnSent(sent);
     }

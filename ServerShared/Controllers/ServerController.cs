@@ -34,7 +34,6 @@ public static class ServerController
         if (serverModel.Context != null && !serverModel.IsUdp)
         {
             CoreSecureServer srv = new(serverModel.Context, serverModel.Port);
-            srv.Context.ClientCertificateRequired = false;
             serverModel.Server = srv;
         }
         else if (!serverModel.IsUdp)
@@ -44,14 +43,18 @@ public static class ServerController
         }
         else if (serverModel.Context != null && serverModel.IsUdp)
         {
-            // TODO:
+            CoreSslUdpServer srv = new(serverModel.Context, serverModel.Port);
+            serverModel.Server = srv;
         }
         else
         {
             CoreUdpServer srv = new(serverModel.Port);
             serverModel.Server = srv;
         }
-        serverModel.Server.DoReturn404IfFail = false;
+        if (serverModel.Server is IHttpServer server)
+        {
+            server.DoReturn404IfFail = false;
+        }
         ServerEvents.ReceivedFailed += ServerEvents_ReceivedFailed;
         ServerEvents.SocketError += ServerEvents_SocketError;
         ServerEvents.ReceivedRequestError += ServerEvents_ReceivedRequestError;
