@@ -33,8 +33,8 @@ public readonly struct Int48
 
     public Int48(byte[] bytes)
     {
-        if (bytes.Length != 5)
-            throw new Exception("Bytes are not 5!");
+        if (bytes.Length != 6)
+            throw new Exception("Bytes are not 6!");
         m_b0 = bytes[0];
         m_b1 = bytes[1];
         m_b2 = bytes[2];
