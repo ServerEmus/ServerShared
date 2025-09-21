@@ -1,5 +1,4 @@
 using ModdableWebServer.Interfaces;
-using NetCoreServer;
 
 namespace ServerShared.CommonModels;
 
@@ -19,17 +18,17 @@ public class ServerModel
     public required int Port { get; init; }
 
     /// <summary>
-    /// Null means run a simple WS server, a filled context run a WSS server.
+    /// Gets or sets if the current server is an UDP server.
     /// </summary>
-    public SslContext? Context { get; init; }
+    public bool IsUdp { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets if the current server is a secure (ssl) server.
+    /// </summary>
+    public bool IsSecure { get; init; } = false;
 
     /// <summary>
     /// The Server if exists.
     /// </summary>
     public IServer? Server { get; set; }
-
-    /// <summary>
-    /// Gets or sets if the current server is an UDP server.
-    /// </summary>
-    public bool IsUdp { get; set; } = false;
 }

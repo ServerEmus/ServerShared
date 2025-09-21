@@ -19,13 +19,13 @@ public class CoreSslUdpServer(SslContext context, int port) : UdpServer(IPAddres
     public readonly ConcurrentDictionary<EndPoint, CoreSslUdpSession> Sessions = [];
 
     /// <inheritdoc/>
-    public override void OnStarted()
+    protected override void OnStarted()
     {
         ReceiveAsync();
     }
 
     /// <inheritdoc/>
-    public override void OnReceived(EndPoint endpoint, byte[] buffer, long offset, long size)
+    protected override void OnReceived(EndPoint endpoint, byte[] buffer, long offset, long size)
     {
         base.OnReceived(endpoint, buffer, offset, size);
         if (!Sessions.ContainsKey(endpoint))
@@ -42,7 +42,7 @@ public class CoreSslUdpServer(SslContext context, int port) : UdpServer(IPAddres
     }
 
     /// <inheritdoc/>
-    public override void OnSent(EndPoint endpoint, long sent)
+    protected override void OnSent(EndPoint endpoint, long sent)
     {
         if (!Sessions.TryGetValue(endpoint, out CoreSslUdpSession? session))
             return;

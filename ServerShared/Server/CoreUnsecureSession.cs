@@ -27,15 +27,15 @@ public class CoreUnsecureSession(CoreUnsecureServer server) : WS_Session(server)
 
 
     /// <inheritdoc/>
-    public override void OnConnected()
+    protected override void OnConnected()
         => OnConnectedEvent?.Invoke(this, Id);
 
     /// <inheritdoc/>
-    public override void OnDisconnected()
+    protected override void OnDisconnected()
         => OnDisconnectedEvent?.Invoke(this, Id);
 
     /// <inheritdoc/>
-    public override void OnReceived(byte[] buffer, long offset, long size)
+    protected override void OnReceived(byte[] buffer, long offset, long size)
     {
         var buf = buffer.Take((int)size).Skip((int)offset).ToArray();
         if (char.IsAsciiLetterUpper((char)buf[0]) || WebSocket.WsHandshaked)

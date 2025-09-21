@@ -17,13 +17,13 @@ public class CoreUdpServer(int port) : UdpServer(IPAddress.Any, port) , IServer
     public bool DoReturn404IfFail { get; set; } // TODO: Move this out.
 
     /// <inheritdoc/>
-    public override void OnStarted()
+    protected override void OnStarted()
     {
         ReceiveAsync();
     }
 
     /// <inheritdoc/>
-    public override void OnReceived(EndPoint endpoint, byte[] buffer, long offset, long size)
+    protected override void OnReceived(EndPoint endpoint, byte[] buffer, long offset, long size)
     {
         base.OnReceived(endpoint, buffer, offset, size);
         if (!Sessions.ContainsKey(endpoint))
@@ -40,7 +40,7 @@ public class CoreUdpServer(int port) : UdpServer(IPAddress.Any, port) , IServer
     }
 
     /// <inheritdoc/>
-    public override void OnSent(EndPoint endpoint, long sent)
+    protected override void OnSent(EndPoint endpoint, long sent)
     {
         if (!Sessions.TryGetValue(endpoint, out CoreUdpSession? session))
             return;
