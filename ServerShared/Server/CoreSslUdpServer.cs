@@ -42,14 +42,6 @@ public class CoreSslUdpServer(SslContext context, int port) : UdpServer(IPAddres
     }
 
     /// <inheritdoc/>
-    protected override void OnSent(EndPoint endpoint, long sent)
-    {
-        if (!Sessions.TryGetValue(endpoint, out CoreSslUdpSession? session))
-            return;
-        session.OnSent(sent);
-    }
-
-    /// <inheritdoc/>
     public bool DisconnectAll()
     {
         return true;

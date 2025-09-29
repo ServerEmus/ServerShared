@@ -12,22 +12,15 @@ public enum CompressionType
     /// <summary>
     /// ZSTD Compression used.
     /// </summary>
-    Zstd,
+    ZSTD,
     /// <summary>
     /// Deflate Compression used.
     /// </summary>
     Deflate,
     /// <summary>
-    /// Uplay related LZHAM Compression used.
-    /// </summary>
-    /// <remarks>
-    /// Compressing does not work!
-    /// </remarks>
-    UplayLzham,
-    /// <summary>
     /// LZHAM Compression used.
     /// </summary>
-    Lzham,
+    LZHAM,
     /// <summary>
     /// LZO Compression used.
     /// </summary>
@@ -35,5 +28,5 @@ public enum CompressionType
     /// <summary>
     /// ZLIB Compression used.
     /// </summary>
-    Zlib,
+    ZLIB,
 }

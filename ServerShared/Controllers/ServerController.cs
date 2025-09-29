@@ -61,24 +61,23 @@ public static class ServerController
             return null;
 #pragma warning restore CS8603 // Possible null reference return.
         }
-        Log.Information("Certificate search and selecto for HostName: {hostname}", hostName);
+        Log.Debug("Certificate search and select for HostName: {hostname}", hostName);
         foreach (var cert in Certificates)
         {
-            Log.Information("Certificate FN: {fn}, Subject: {subject}", cert.FriendlyName, cert.Subject);
+            Log.Debug("Certificate FriendlyName: {fn}, Subject: {subject}", cert.FriendlyName, cert.Subject);
             foreach (var extension in cert.Extensions)
             {
-                if (extension is X509SubjectAlternativeNameExtension alternativeNameExtension)
+                if (extension is not X509SubjectAlternativeNameExtension alternativeNameExtension)
+                    continue;
+
+                foreach (var dns in alternativeNameExtension.EnumerateDnsNames())
                 {
-                    foreach (var dns in alternativeNameExtension.EnumerateDnsNames())
-                    {
-                        Log.Information("Cert DNS name: {dns}", dns);
-                        if (dns.Contains(hostName))
-                        {
-                            Log.Information("Dns contain hostname, returning cert!");
-                            return cert;
-                        }
-                            
-                    }
+                    Log.Debug("Cert DNS name: {dns}", dns);
+                    if (!dns.Contains(hostName))
+                        continue;
+
+                    Log.Debug("Dns contain hostname, returning cert!");
+                    return cert;
                 }
             }
         }
@@ -110,21 +109,13 @@ public static class ServerController
     public static void Start(ServerModel serverModel)
     {
         if (serverModel.IsSecure && !serverModel.IsUdp)
-        {
             serverModel.Server = new CoreSecureServer(Context, serverModel.Port);
-        }
         else if (!serverModel.IsUdp)
-        {
             serverModel.Server = new CoreUnsecureServer(serverModel.Port);
-        }
         else if (serverModel.IsSecure && serverModel.IsUdp)
-        {
             serverModel.Server = new CoreSslUdpServer(Context, serverModel.Port);
-        }
         else
-        {
             serverModel.Server = new CoreUdpServer(serverModel.Port);
-        }
         if (serverModel.Server is IHttpServer server)
         {
             server.DoReturn404IfFail = false;

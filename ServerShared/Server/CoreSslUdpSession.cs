@@ -58,19 +58,6 @@ public class CoreSslUdpSession(EndPoint endPoint, CoreSslUdpServer server)
     }
 
     /// <summary>
-    /// Handle datagram sent notification
-    /// </summary>
-    /// <param name="sent">Size of sent datagram buffer</param>
-    /// <remarks>
-    /// Notification is called when a datagram was sent to the client.
-    /// This handler could be used to send another datagram to the client for instance when the pending size is zero.
-    /// </remarks>
-    public virtual void OnSent(long sent)
-    {
-
-    }
-
-    /// <summary>
     /// Handle server stopped notification
     /// </summary>
     public virtual bool Disconnect()

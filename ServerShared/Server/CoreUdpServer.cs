@@ -40,14 +40,6 @@ public class CoreUdpServer(int port) : UdpServer(IPAddress.Any, port) , IServer
     }
 
     /// <inheritdoc/>
-    protected override void OnSent(EndPoint endpoint, long sent)
-    {
-        if (!Sessions.TryGetValue(endpoint, out CoreUdpSession? session))
-            return;
-        session.OnSent(sent);
-    }
-
-    /// <inheritdoc/>
     public bool DisconnectAll()
     {
         return true;

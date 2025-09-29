@@ -1,10 +1,11 @@
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using Ionic.Zlib;
 using LzhamWrapper;
 using LzhamWrapper.Enums;
+using LzhamWrapper.Parameters;
 using lzo.net;
 using ZstdNet;
-using Ionic.Zlib;
 
 namespace ServerShared.Extensions;
 
@@ -25,7 +26,7 @@ public static class DeCompExtension
         MemoryStream ms = new((int)outputsize);
         switch (compressionType)
         {
-            case CompressionType.Zstd:
+            case CompressionType.ZSTD:
                 {
                     using Decompressor decompressorZstd = new();
                     return decompressorZstd.Unwrap(bytesToDecompress);
@@ -36,29 +37,17 @@ public static class DeCompExtension
                     decompressor.CopyTo(ms);
                     return ms.ToArray();
                 }
-            case CompressionType.UplayLzham:
-                {
-                    DecompressionParameters parameters = new()
-                    {
-                        Flags = DecompressionFlag.ComputeAdler32,
-                        DictionarySize = 26,
-                        UpdateRate = TableUpdateRate.Default
-                    };
-                    using LzhamStream lzhamStream = new(new MemoryStream(bytesToDecompress), parameters);
-                    lzhamStream.CopyTo(ms);
-                    return ms.ToArray();
-                }
-            case CompressionType.Lzham:
+            case CompressionType.LZHAM:
                 {
                     DecompressionParameters parameters = new()
                     {
                         Flags = DecompressionFlag.ComputeAdler32 | DecompressionFlag.ReadZlibStream,
                         DictionarySize = 15,
-                        UpdateRate = TableUpdateRate.Default
                     };
-                    using LzhamStream lzhamStream = new(new MemoryStream(bytesToDecompress), parameters);
-                    lzhamStream.CopyTo(ms);
-                    return ms.ToArray();
+                    int len = 0;
+                    uint adler = 0;
+                    Lzham.DecompressMemory(parameters, ms.GetBuffer(), ref len, 0, bytesToDecompress, bytesToDecompress.Length, 0, ref adler);
+                    return [..ms.ToArray().Take(len)];
                 }
             case CompressionType.LZO:
                 {
@@ -66,7 +55,7 @@ public static class DeCompExtension
                     decompressed.CopyTo(ms);
                     return ms.ToArray();
                 }
-            case CompressionType.Zlib:
+            case CompressionType.ZLIB:
                 return ZlibStream.UncompressBuffer(bytesToDecompress);
             case CompressionType.None:
             default:
@@ -84,7 +73,7 @@ public static class DeCompExtension
     {
         switch (compressionType)
         {
-            case CompressionType.Zstd:
+            case CompressionType.ZSTD:
                 {
                     using Compressor compressZstd = new();
                     return compressZstd.Wrap(bytesToCompress);
@@ -97,21 +86,19 @@ public static class DeCompExtension
                     deflate.Write(bytesToCompress);
                     return ms.ToArray();
                 }
-            case CompressionType.UplayLzham:
-                return [];
-            case CompressionType.Lzham:
+            case CompressionType.LZHAM:
                 {
                     CompressionParameters compressionParameters = new()
                     {
-                        Flags = 0,
-                        DictionarySize = 26,
-                        UpdateRate = TableUpdateRate.Default,
-                        Level = LzhamWrapper.Enums.CompressionLevel.Uber
+                        Flags = CompressionFlag.WriteZlibStream,
+                        DictionarySize = 15,
+                        Level = LzhamWrapper.Enums.CompressionLevel.Default,
                     };
-                    MemoryStream ms = new();
-                    using LzhamStream lzhamStream = new(ms, compressionParameters);
-                    lzhamStream.Write(bytesToCompress);
-                    return ms.ToArray();
+                    byte[] output = new byte[bytesToCompress.Length];
+                    int outlen = 0;
+                    uint adler = 0;
+                    Lzham.CompressMemory(compressionParameters, output, ref outlen, 0, bytesToCompress, bytesToCompress.Length, 0, ref adler);
+                    return [.. output.Take(outlen)];
                 }
             case CompressionType.LZO:
                 {
@@ -120,7 +107,7 @@ public static class DeCompExtension
                     compress.Write(bytesToCompress);
                     return mem.ToArray();
                 }
-            case CompressionType.Zlib:
+            case CompressionType.ZLIB:
                 return ZlibStream.CompressBuffer(bytesToCompress);
             case CompressionType.None:
             default:

@@ -13,7 +13,7 @@ public static class Base64CompressionExtension
     /// <param name="str">To Compress</param>
     /// <param name="compressionType">Compression Type</param>
     /// <returns>String as Base64</returns>
-    public static string ToCompressedBase64(string str, CompressionType compressionType = CompressionType.Zstd)
+    public static string ToCompressedBase64(string str, CompressionType compressionType = CompressionType.ZSTD)
     {
         return ToCompressedBase64(Encoding.UTF8.GetBytes(str), compressionType);
     }
@@ -24,7 +24,7 @@ public static class Base64CompressionExtension
     /// <param name="bytes">To Compress</param>
     /// <param name="compressionType">Compression Type</param>
     /// <returns>String as Base64</returns>
-    public static string ToCompressedBase64(byte[] bytes, CompressionType compressionType = CompressionType.Zstd)
+    public static string ToCompressedBase64(byte[] bytes, CompressionType compressionType = CompressionType.ZSTD)
     {
         return Convert.ToBase64String(DeCompExtension.Compress(compressionType, bytes));
     }
@@ -35,7 +35,7 @@ public static class Base64CompressionExtension
     /// <param name="str">To Decompress</param>
     /// <param name="compressionType">Compression Type</param>
     /// <returns>String as Base64</returns>
-    public static string FromCompressedBase64(string str, CompressionType compressionType = CompressionType.Zstd)
+    public static string FromCompressedBase64(string str, CompressionType compressionType = CompressionType.ZSTD)
     {
         return FromCompressedBase64(Convert.FromBase64String(str), compressionType);
     }
@@ -46,7 +46,7 @@ public static class Base64CompressionExtension
     /// <param name="bytes">To Decompress</param>
     /// <param name="compressionType">Compression Type</param>
     /// <returns>String as Base64</returns>
-    public static string FromCompressedBase64(byte[] bytes, CompressionType compressionType = CompressionType.Zstd)
+    public static string FromCompressedBase64(byte[] bytes, CompressionType compressionType = CompressionType.ZSTD)
     {
         return Encoding.UTF8.GetString(DeCompExtension.Decompress(compressionType, bytes, 0));
     }
