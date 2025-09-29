@@ -1,0 +1,49 @@
+name: Auto Update Packages
+
+on:
+    schedule:
+    - cron:  '0 15 * * *'
+    workflow_dispatch:
+# allow manual trigger
+
+jobs:
+  autoupdate:
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
+        pull-requests: write
+        
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Add GitHub NuGet Source
+      run: dotnet nuget add source https://nuget.pkg.github.com/ServerEmus/index.json --name "github" --username "any" --password ${{ secrets.GITHUB_TOKEN  }} --store-password-in-clear-text
+
+    - name: Install outdated tool
+      run: dotnet tool install --global dotnet-outdated-tool
+      
+    - name: Run tool
+      id: run-tool
+      run: dotnet outdated -o:Outdate.md -of:markdown -f
+      continue-on-error: true
+
+    - name : Upload
+      uses: actions/upload-artifact@v4.3.5
+      with:
+        name: OutMD
+        path: Outdate.md
+
+    - name: Update package and commit
+      if: steps.run-tool.outcome == 'failure'
+      run: |
+        dotnet outdated -u
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        git add .
+        git commit -m "Upgraded nuget dependencies!"
+        git push
