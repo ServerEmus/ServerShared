@@ -32,7 +32,7 @@ jobs:
       id: run-tool
       run: |
           mkdir Out
-          dotnet outdated -o:Out\Outdate.md -of:markdown -f
+          dotnet outdated -o:Out/Outdate.md -of:markdown -f
       continue-on-error: true
 
     - name : Upload
