@@ -16,13 +16,8 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.os }} Build
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
     uses: ServerEmus/workflows/.github/workflows/build.yml@main
     with:
-      runner: ${{ matrix.os }}
       ProjName: ServerShared
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN   }}
