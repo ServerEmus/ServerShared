@@ -1,12 +1,18 @@
-﻿namespace ServerShared.Types;
+﻿using System.Numerics;
+
+namespace ServerShared.Types;
 
 /// <summary>
 /// Represent a 24-bit signed integer.
 /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 [Serializable]
-public readonly struct Int24 
+public readonly struct Int24
 {
+    public static readonly Int24 Zero = new(0);
+    public static readonly Int24 MaxValue = new(8388607);
+    public static readonly Int24 MinValue = new(-8388608);
+
     private readonly byte m_b0, m_b1, m_b2, m_sign;
 
     private Int24(int value)
@@ -28,7 +34,7 @@ public readonly struct Int24
     public Int24(byte[] bytes)
     {
         if (bytes.Length != 3)
-            throw new Exception("Bytes are not 3!");
+            throw new Exception($"Bytes are not 3! {bytes.Length}");
         m_b0 = bytes[0];
         m_b1 = bytes[1];
         m_b2 = (byte)(bytes[2] & 0x7F);

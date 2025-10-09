@@ -7,6 +7,9 @@
 [Serializable]
 public readonly struct UInt48
 {
+    public static readonly UInt48 Zero = new(0);
+    public static readonly UInt48 MaxValue = new(140737488355327);
+    public static readonly UInt48 MinValue = new(0);
     private readonly byte m_b0, m_b1, m_b2, m_b3, m_b4, m_b5;
 
     private UInt48(ulong value)
@@ -31,8 +34,8 @@ public readonly struct UInt48
 
     public UInt48(byte[] bytes)
     {
-        if (bytes.Length != 5)
-            throw new Exception("Bytes are not 5!");
+        if (bytes.Length != 6)
+            throw new Exception($"Bytes are not 6! {bytes.Length}");
         m_b0 = bytes[0];
         m_b1 = bytes[1];
         m_b2 = bytes[2];

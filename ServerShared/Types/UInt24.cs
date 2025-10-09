@@ -7,6 +7,10 @@
 [Serializable]
 public readonly struct UInt24 
 {
+    public static readonly UInt24 Zero = new(0);
+    public static readonly UInt24 MaxValue = new(0x00ffffff);
+    public static readonly UInt24 MinValue = new(0);
+
     private readonly byte m_b0, m_b1, m_b2;
 
     private UInt24(uint value)
@@ -26,7 +30,7 @@ public readonly struct UInt24
     public UInt24(byte[] bytes)
     {
         if (bytes.Length != 3)
-            throw new Exception("Bytes are not 3!");
+            throw new Exception($"Bytes are not 3! {bytes.Length}");
         m_b0 = bytes[0];
         m_b1 = bytes[1];
         m_b2 = (byte)(bytes[2] & 0x7F);

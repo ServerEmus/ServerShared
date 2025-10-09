@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="ServerShared.Test/ServerShared.Test.csproj" Id="82a22802-85b3-405f-b5f2-7d7185b935aa" />
+  <Project Path="ServerShared/ServerShared.csproj" />
+</Solution>

@@ -43,12 +43,12 @@ public class BinaryWriterBig(Stream output, Encoding encoding, bool leaveOpen) :
     /// <inheritdoc/>
     public override void Write(decimal value)
     {
-        base.Write(value);
         Span<byte> buffer = stackalloc byte[sizeof(decimal)];
-        foreach (int bit in decimal.GetBits(value))
-        {
-            BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(bit)).CopyTo(buffer);
-        }
+        int[] bits = decimal.GetBits(value);
+        BinaryPrimitives.WriteInt32BigEndian(buffer, bits[0]);
+        BinaryPrimitives.WriteInt32BigEndian(buffer[4..], bits[1]);
+        BinaryPrimitives.WriteInt32BigEndian(buffer[8..], bits[2]);
+        BinaryPrimitives.WriteInt32BigEndian(buffer[12..], bits[3]);
         OutStream.Write(buffer);
     }
 
