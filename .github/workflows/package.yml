@@ -4,11 +4,12 @@ on:
   push:
     tags:
       - "release-*"
-env:
-  ProjName: ServerShared
 
 jobs:
   publish-package:
+    permissions:
+      contents: write
+      packages: write
     uses: ServerEmus/workflows/.github/workflows/package.yml@main
     with:
       ProjName: ServerShared

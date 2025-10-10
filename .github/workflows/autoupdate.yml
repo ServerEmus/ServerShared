@@ -8,8 +8,11 @@ on:
 
 jobs:
   autoupdate:
+    permissions:
+      contents: write
+      packages: write
     uses: ServerEmus/workflows/.github/workflows/autoupdate.yml@main
     with:
       runner: ubuntu-latest
     secrets:
-      TOKEN: ${{ secrets.GITHUB_TOKEN   }}
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}
