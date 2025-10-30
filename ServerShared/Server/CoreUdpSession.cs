@@ -1,9 +1,11 @@
-﻿using System.Net;
+﻿using ModdableWebServer.Interfaces;
+using System.Net;
+using System.Text;
 
 namespace ServerShared.Server;
 
 /// <inheritdoc/>
-public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server)
+public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server) : ISession
 {
     /// <summary>
     /// Bytes received from Stream.
@@ -24,6 +26,15 @@ public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server)
     /// Server
     /// </summary>
     public CoreUdpServer Server { get; } = server;
+    
+    /// <inheritdoc/>
+    public IServer IServer => Server;
+
+    /// <inheritdoc/>
+    public bool IsConnected => Server.Sessions.ContainsKey(EndPoint);
+
+    /// <inheritdoc/>
+    public bool IsDisposed => !IsConnected;
 
     /// <summary>
     /// Handle buffer received notification
@@ -45,6 +56,12 @@ public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server)
     public virtual long Send(ReadOnlySpan<byte> bytes)
     {
         return Server.Send(EndPoint, bytes);
+    }
+
+    /// <inheritdoc/>
+    public long Send(string text)
+    {
+        return Server.Send(EndPoint, Encoding.UTF8.GetBytes(text));
     }
 
     /// <summary>

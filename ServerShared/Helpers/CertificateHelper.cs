@@ -10,17 +10,23 @@ namespace ServerShared.Helpers;
 public static class CertificateHelper
 {
     /// <summary>
+    /// Default password for 
+    /// </summary>
+    public const string DefaultCertPassword = "Shared";
+
+    /// <summary>
     /// 
     /// </summary>
     /// <param name="name"></param>
     /// <param name="algorithm"></param>
     /// <param name="hashAlgorithm"></param>
+    /// <param name="password"></param>
     /// <returns></returns>
-    public static X509Certificate2 Create(string name, AsymmetricAlgorithm algorithm, HashAlgorithmName hashAlgorithm)
+    public static X509Certificate2 Create(string name, AsymmetricAlgorithm algorithm, HashAlgorithmName hashAlgorithm, string password = DefaultCertPassword)
     {
         X500DistinguishedNameBuilder nameBuilder = new();
         nameBuilder.AddCommonName(name);
-        return Create(name, algorithm, hashAlgorithm, nameBuilder);
+        return Create(name, algorithm, hashAlgorithm, nameBuilder, password);
     }
 
     /// <summary>
@@ -30,8 +36,9 @@ public static class CertificateHelper
     /// <param name="algorithm"></param>
     /// <param name="hashAlgorithm"></param>
     /// <param name="nameBuilder"></param>
+    /// <param name="password"></param>
     /// <returns></returns>
-    public static X509Certificate2 Create(string name, AsymmetricAlgorithm algorithm, HashAlgorithmName hashAlgorithm, X500DistinguishedNameBuilder nameBuilder)
+    public static X509Certificate2 Create(string name, AsymmetricAlgorithm algorithm, HashAlgorithmName hashAlgorithm, X500DistinguishedNameBuilder nameBuilder, string password = DefaultCertPassword)
     {
         Span<byte> serialNumber = stackalloc byte[8];
         RandomNumberGenerator.Fill(serialNumber);
@@ -49,9 +56,11 @@ public static class CertificateHelper
         var validTo = validFrom.AddYears(10);
         var cert = certificate.Create(nameBuilder.Build(), generator, validFrom, validTo, serialNumber);
         string outPath = Path.Combine(Directory.GetCurrentDirectory(), "Cert");
-        File.WriteAllBytes(Path.Combine(outPath, $"{name}.pfx"), cert.Export(X509ContentType.Pfx));
+        File.WriteAllText(Path.Combine(outPath, $"{name}.req.pem"), certificate.CreateSigningRequestPem());
+        File.WriteAllBytes(Path.Combine(outPath, $"{name}.pfx"), cert.Export(X509ContentType.Pfx, password));
         File.WriteAllText(Path.Combine(outPath, $"{name}_private.key"), algorithm.ExportPkcs8PrivateKeyPem());
         File.WriteAllText(Path.Combine(outPath, $"{name}_public.key"), algorithm.ExportSubjectPublicKeyInfoPem());
+        
         return cert;
     }
 }

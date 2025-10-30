@@ -14,9 +14,6 @@ public class CoreUdpServer(int port) : UdpServer(IPAddress.Any, port) , IServer
     public readonly ConcurrentDictionary<EndPoint, CoreUdpSession> Sessions = [];
 
     /// <inheritdoc/>
-    public bool DoReturn404IfFail { get; set; } // TODO: Move this out.
-
-    /// <inheritdoc/>
     protected override void OnStarted()
     {
         ReceiveAsync();
