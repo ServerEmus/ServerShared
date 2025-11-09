@@ -3,7 +3,9 @@ using ModdableWebServer.Interfaces;
 using NetCoreServer;
 using Serilog;
 using ServerShared.CommonModels;
+using ServerShared.EventArguments;
 using ServerShared.Server;
+using System.Collections.ObjectModel;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -28,20 +30,28 @@ public static class ServerController
     /// <summary>
     /// Collection of certificates to use on websites.
     /// </summary>
-    public static List<X509Certificate2> Certificates { get; private set; } = [];
+    public static Collection<X509Certificate2> Certificates { get; private set; } = [];
+
+    /// <summary>
+    /// Action that runs when server started.
+    /// </summary>
+    public static event EventHandler<ServerModelEventArgs>? OnServerStarted;
+
+    /// <summary>
+    /// Action that runs when server stopped.
+    /// </summary>
+    public static event EventHandler<ServerModelEventArgs>? OnServerStopped;
 
     static ServerController()
     {
-#pragma warning disable SYSLIB0039 // Type or member is obsolete
         Context = new()
         {
             ClientCertificateRequired = false,
             RevocationMode = X509RevocationMode.NoCheck,
             CertificateValidationCallback = new(NoValidation),
-            Protocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13,
+            Protocols = SslProtocols.None,
             CertificateSelectionCallback = new(CertificateSelect),
         };
-#pragma warning restore SYSLIB0039 // Type or member is obsolete
     }
 
     private static bool NoValidation(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
@@ -73,7 +83,7 @@ public static class ServerController
                 foreach (var dns in alternativeNameExtension.EnumerateDnsNames())
                 {
                     Log.Debug("Cert DNS name: {dns}", dns);
-                    if (!dns.Contains(hostName))
+                    if (!dns.Contains(hostName, StringComparison.InvariantCultureIgnoreCase))
                         continue;
 
                     Log.Debug("Dns contain hostname, returning cert!");
@@ -96,8 +106,10 @@ public static class ServerController
     /// Starting the servers.
     /// </summary>
     /// <param name="servers">A list of models for server creation / starting.</param>
-    public static void Start(List<ServerModel> servers)
+    public static void Start(Collection<ServerModel> servers)
     {
+        ArgumentNullException.ThrowIfNull(servers);
+
         foreach (ServerModel server in servers)
             Start(server);
     }
@@ -108,6 +120,8 @@ public static class ServerController
     /// <param name="serverModel">A model for server creation/starting.</param>
     public static void Start(ServerModel serverModel)
     {
+        ArgumentNullException.ThrowIfNull(serverModel);
+
         if (serverModel.IsSecure && !serverModel.IsUdp)
             serverModel.Server = new CoreSecureServer(Context, serverModel.Port);
         else if (!serverModel.IsUdp)
@@ -125,7 +139,8 @@ public static class ServerController
         ServerEvents.ReceivedRequestError += ServerEvents_ReceivedRequestError;
         serverModel.Server.Start();
         InternalServers.Add(serverModel);
-        Log.Information("Server started on {Port}!", serverModel.Port);
+        OnServerStarted?.Invoke(null, new(serverModel));
+        Log.Information("Server {name} started on {Port}!", serverModel.Name, serverModel.Port);
     }
 
     private static void ServerEvents_ReceivedRequestError(IServer arg1, HttpRequest arg2, string arg3)
@@ -146,13 +161,28 @@ public static class ServerController
     /// <summary>
     /// Stopping the server.
     /// </summary>
+    /// <param name="clear">Should remove from internal list.</param>
     public static void Stop(bool clear = false)
     {
-        foreach (ServerModel serverModel in InternalServers)
-            serverModel.Server?.Stop();
+        foreach (ServerModel serverModel in InternalServers.ToList())
+            Stop(serverModel, clear);
+    }
+
+    /// <summary>
+    /// Stopping a desired server.
+    /// </summary>
+    /// <param name="model">The server model to stop.</param>
+    /// <param name="clear">Should remove from internal list.</param>
+    public static void Stop(ServerModel model, bool clear = false)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+
+        OnServerStopped?.Invoke(null, new(model));
+        model.Server?.Stop();
         if (clear)
-            InternalServers.Clear();
-        Log.Information("Servers stopped.");
+            InternalServers.Remove(model);
+
+        Log.Information("Server {name} stopped.", model.Name);
     }
 
     /// <summary>

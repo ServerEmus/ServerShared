@@ -35,9 +35,21 @@ public static class PluginController
         List<Assembly> LoadedAssemblies = [];
         foreach (string file in Directory.GetFiles(pluginsPath, "*.dll"))
         {
-            if (file.Contains(".ignore"))
+            if (file.Contains(".ignore", StringComparison.InvariantCultureIgnoreCase))
                 continue;
-            var assemlby = MainLoadContext.LoadFromAssemblyPath(file);
+
+            Stream dllStream = File.OpenRead(file);
+            Stream? pdbStream = null;
+
+            string pdbFile = file.Replace("dll", "pdb", StringComparison.InvariantCultureIgnoreCase);
+            if (File.Exists(pdbFile))
+            {
+                pdbStream = File.OpenRead(file);
+            }    
+
+            var assemlby = MainLoadContext.LoadFromStream(dllStream, pdbStream);
+            dllStream.Dispose();
+            pdbStream?.Dispose();
             if (assemlby == null)
                 continue;
             Log.Information("Plugin {asm} loaded!", assemlby.GetName().Name);

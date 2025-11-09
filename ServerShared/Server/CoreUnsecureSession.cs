@@ -1,4 +1,5 @@
 ﻿using ModdableWebServer.Sessions;
+using ServerShared.EventArguments;
 
 namespace ServerShared.Server;
 
@@ -8,17 +9,17 @@ public class CoreUnsecureSession(CoreUnsecureServer server) : WS_Session(server)
     /// <summary>
     /// Bytes received from Stream.
     /// </summary>
-    public static event EventHandler<byte[]>? OnBytesReceived;
+    public static event EventHandler<SessionBytesReceivedEventArgs>? OnBytesReceived;
 
     /// <summary>
     /// <see cref="Guid"/> connected.
     /// </summary>
-    public static event EventHandler<Guid>? OnConnectedEvent;
+    public static event EventHandler<SessionGuidEventArgs>? OnConnectedEvent;
 
     /// <summary>
     /// <see cref="Guid"/> is disconnected.
     /// </summary>
-    public static event EventHandler<Guid>? OnDisconnectedEvent;
+    public static event EventHandler<SessionGuidEventArgs>? OnDisconnectedEvent;
 
     /// <summary>
     /// Is session is either HTTP or WS.
@@ -28,11 +29,11 @@ public class CoreUnsecureSession(CoreUnsecureServer server) : WS_Session(server)
 
     /// <inheritdoc/>
     protected override void OnConnected()
-        => OnConnectedEvent?.Invoke(this, Id);
+        => OnConnectedEvent?.Invoke(this, new(this, Id));
 
     /// <inheritdoc/>
     protected override void OnDisconnected()
-        => OnDisconnectedEvent?.Invoke(this, Id);
+        => OnDisconnectedEvent?.Invoke(this, new(this, Id));
 
     /// <inheritdoc/>
     protected override void OnReceived(byte[] buffer, long offset, long size)
@@ -46,7 +47,7 @@ public class CoreUnsecureSession(CoreUnsecureServer server) : WS_Session(server)
         else
         {
             IsWebSession = false;
-            OnBytesReceived?.Invoke(this, buf);
+            OnBytesReceived?.Invoke(this, new(this, buf));
         }
     }
 }

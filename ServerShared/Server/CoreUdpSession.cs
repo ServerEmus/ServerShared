@@ -1,4 +1,5 @@
 ﻿using ModdableWebServer.Interfaces;
+using ServerShared.EventArguments;
 using System.Net;
 using System.Text;
 
@@ -10,7 +11,7 @@ public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server) : ISession
     /// <summary>
     /// Bytes received from Stream.
     /// </summary>
-    public static event EventHandler<byte[]>? OnBytesReceived;
+    public static event EventHandler<SessionBytesReceivedEventArgs>? OnBytesReceived;
 
     /// <summary>
     /// Session Id
@@ -45,7 +46,7 @@ public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server) : ISession
     /// </remarks>
     public virtual void Process(ReadOnlySpan<byte> bytes)
     {
-        OnBytesReceived?.Invoke(this, bytes.ToArray());
+        OnBytesReceived?.Invoke(this, new(this, bytes.ToArray()));
     }
 
     /// <summary>

@@ -126,18 +126,17 @@ public class BinaryReaderBig(Stream input, Encoding encoding, bool leaveOpen) : 
     /// <returns>A <typeparamref name="T"/> from the current stream.</returns>
     public T ReadSerializable<T>() where T : IBigSerializable, new()
     {
-        T t = new();
-        ReadSerializable(ref t);
-        return t;
+        return ReadSerializable<T>(new());
     }
 
     /// <summary>
     /// Reading a <typeparamref name="T"/> from the current stream and advances the current position of the stream.
     /// </summary>
     /// <returns>A <typeparamref name="T"/> from the current stream.</returns>
-    public void ReadSerializable<T>(ref T t) where T : IBigSerializable
+    public T ReadSerializable<T>(T serializable) where T : IBigSerializable
     {
-        t.Deserialize(this);
+        serializable.Deserialize(this);
+        return serializable;
     }
 
     /// <summary>

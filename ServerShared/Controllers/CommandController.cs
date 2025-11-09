@@ -1,3 +1,4 @@
+using Serilog;
 using ServerShared.CommonModels;
 
 namespace ServerShared.Controllers;
@@ -30,6 +31,8 @@ public static class CommandController
     /// <returns>Success/Failure for adding into the commands.</returns>
     public static bool AddCommand(Command command, bool cannotRemove = false)
     {
+        ArgumentNullException.ThrowIfNull(command);
+
         if (!Commands.Add(command))
             return false;
         if (cannotRemove)
@@ -69,16 +72,18 @@ public static class CommandController
     /// <param name="line">Readed line.</param>
     public static void Run(string line)
     {
+        ArgumentNullException.ThrowIfNull(line);
+
         string[] splitted = line.Split(" ");
         Run(splitted[0], splitted[1..]);
     }
 
     private static void Help(string[] _)
     {
-        Console.WriteLine("Commands:");
+        Log.Information("Commands:");
         foreach (Command item in Commands)
         {
-            Console.WriteLine($"{item.Name} {item.Description}");
+            Log.Information("{CommandName} {CommandDescription}", item.Name, item.Description);
         }
     }
 }

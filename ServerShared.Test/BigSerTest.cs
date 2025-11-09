@@ -2,7 +2,7 @@
 
 namespace ServerShared.Test;
 
-public class BigSer : IBigSerializable
+internal class BigSer : IBigSerializable
 {
     public string StrData = string.Empty;
     public int Other;
@@ -25,7 +25,7 @@ public class BigSer : IBigSerializable
     }
 }
 
-public class BigSer2 : IBigInstanceSerializable<BigSer2>
+internal class BigSer2 : IBigInstanceSerializable<BigSer2>
 {
     public string StrData = string.Empty;
     public int Other;

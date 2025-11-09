@@ -23,6 +23,8 @@ public static class DeCompExtension
     /// <returns>Decompressed Data.</returns>
     public static byte[] Decompress(CompressionType compressionType, byte[] bytesToDecompress, uint outputsize)
     {
+        ArgumentNullException.ThrowIfNull(bytesToDecompress);
+
         MemoryStream ms = new((int)outputsize);
         switch (compressionType)
         {
@@ -71,6 +73,8 @@ public static class DeCompExtension
     /// <returns>Compressed Data</returns>
     public static byte[] Compress(CompressionType compressionType, byte[] bytesToCompress)
     {
+        ArgumentNullException.ThrowIfNull(bytesToCompress);
+
         switch (compressionType)
         {
             case CompressionType.ZSTD:

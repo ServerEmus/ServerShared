@@ -1,4 +1,5 @@
 ﻿using LiteDB;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 namespace ServerShared.Database;
@@ -9,9 +10,18 @@ namespace ServerShared.Database;
 /// <typeparam name="T">Any type.</typeparam>
 public class DataBaseConnection<T>
 {
+    const string dbdirName = "Database";
     internal bool _disposed;
-    internal readonly LiteDatabase DB;
-    internal readonly ILiteCollection<T> Collection;
+
+    /// <summary>
+    /// The Lite Database.
+    /// </summary>
+    public LiteDatabase DB { get; }
+
+    /// <summary>
+    /// The connected collection.
+    /// </summary>
+    public ILiteCollection<T> Collection { get; }
 
     /// <summary>
     /// Create a Database and Collection with type <typeparamref name="T"/> name.
@@ -40,8 +50,13 @@ public class DataBaseConnection<T>
     public DataBaseConnection(string dbName, string collectionName, string? password)
     {
         // Ensuring the Dabase is exists.
-        Directory.CreateDirectory("Database");
-        DB = new LiteDatabase(new ConnectionString() { Connection = ConnectionType.Shared, Filename = Path.Combine("Database", $"{dbName}.db") , Password = password });
+        Directory.CreateDirectory(dbdirName);
+        DB = new LiteDatabase(new ConnectionString() 
+        { 
+            Connection = ConnectionType.Shared, 
+            Filename = Path.Combine(dbdirName, $"{dbName}.db") , 
+            Password = password
+        });
         Collection = DB.GetCollection<T>(collectionName);
     }
 
@@ -73,7 +88,7 @@ public class DataBaseConnection<T>
     /// </summary>
     /// <param name="predicate">Predicate.</param>
     /// <returns><see cref="List{T}"/> with the found <typeparamref name="T"/> objects.</returns>
-    public virtual List<T> GetList(Expression<Func<T, bool>> predicate)
+    public virtual Collection<T> GetList(Expression<Func<T, bool>> predicate)
     {
         return [.. Collection.Find(predicate)];
     }

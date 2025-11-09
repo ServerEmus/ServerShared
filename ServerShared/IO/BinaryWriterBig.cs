@@ -66,7 +66,8 @@ public class BinaryWriterBig(Stream output, Encoding encoding, bool leaveOpen) :
     /// <param name="value">The three-byte signed integer to write.</param>
     public void WriteInt24(Int24 value)
     {
-        OutStream.Write([ ..value.ToBytes().Reverse()]);
+        var reversed = value.ToBytes().Reverse().ToArray();
+        OutStream.Write(reversed);
     }
 
     /// <inheritdoc/>
@@ -83,7 +84,8 @@ public class BinaryWriterBig(Stream output, Encoding encoding, bool leaveOpen) :
     /// <param name="value">The six-byte signed integer to write.</param>
     public void WriteInt48(Int48 value)
     {
-        OutStream.Write([.. value.ToBytes().Reverse()]);
+        var reversed = value.ToBytes().Reverse().ToArray();
+        OutStream.Write(reversed);
     }
 
     /// <inheritdoc/>
@@ -108,7 +110,8 @@ public class BinaryWriterBig(Stream output, Encoding encoding, bool leaveOpen) :
     /// <param name="value">The three-byte unsigned integer to write.</param>
     public void WriteUInt24(UInt24 value)
     {
-        OutStream.Write([.. value.ToBytes().Reverse()]);
+        var reversed = value.ToBytes().Reverse().ToArray();
+        OutStream.Write(reversed);
     }
 
     /// <inheritdoc/>
@@ -125,7 +128,8 @@ public class BinaryWriterBig(Stream output, Encoding encoding, bool leaveOpen) :
     /// <param name="value">The six-byte unsigned integer to write.</param>
     public void WriteUInt48(UInt48 value)
     {
-        OutStream.Write([.. value.ToBytes().Reverse()]);
+        var reversed = value.ToBytes().Reverse().ToArray();
+        OutStream.Write(reversed);
     }
 
     /// <inheritdoc/>

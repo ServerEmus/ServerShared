@@ -1,5 +1,6 @@
-﻿using NetCoreServer;
-using ModdableWebServer.Servers;
+﻿using ModdableWebServer.Servers;
+using NetCoreServer;
+using ServerShared.EventArguments;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -35,13 +36,13 @@ public class CoreSecureServer(SslContext context, int port) : WSS_Server(context
         return new CoreSecureSession(this);
     }
 
-    private void Session_OnConnected(object? sender, Guid e)
+    private void Session_OnConnected(object? sender, SessionGuidEventArgs sessionGuid)
     {
-        CoreSessions.TryAdd(e, (CoreSecureSession)sender!);
+        CoreSessions.TryAdd(sessionGuid.Id, (CoreSecureSession)sender!);
     }
 
-    private void Session_OnDisconnected(object? sender, Guid e)
+    private void Session_OnDisconnected(object? sender, SessionGuidEventArgs sessionGuid)
     {
-        CoreSessions.Remove(e, out _);
+        CoreSessions.Remove(sessionGuid.Id, out _);
     }
 }

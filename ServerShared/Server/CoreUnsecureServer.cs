@@ -1,5 +1,6 @@
-﻿using NetCoreServer;
-using ModdableWebServer.Servers;
+﻿using ModdableWebServer.Servers;
+using NetCoreServer;
+using ServerShared.EventArguments;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -35,13 +36,13 @@ public class CoreUnsecureServer(int port) : WS_Server(IPAddress.Any, port)
         return new CoreUnsecureSession(this);
     }
 
-    private void Session_OnConnected(object? sender, Guid e)
+    private void Session_OnConnected(object? sender, SessionGuidEventArgs sessionGuid)
     {
-        CoreSessions.TryAdd(e, (CoreUnsecureSession)sender!);
+        CoreSessions.TryAdd(sessionGuid.Id, (CoreUnsecureSession)sender!);
     }
 
-    private void Session_OnDisconnected(object? sender, Guid e)
+    private void Session_OnDisconnected(object? sender, SessionGuidEventArgs sessionGuid)
     {
-        CoreSessions.Remove(e, out _);
+        CoreSessions.Remove(sessionGuid.Id, out _);
     }
 }

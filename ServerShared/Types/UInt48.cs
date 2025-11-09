@@ -5,7 +5,7 @@
 /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 [Serializable]
-public readonly struct UInt48
+public readonly struct UInt48 : IEquatable<UInt48>
 {
     public static readonly UInt48 Zero = new(0);
     public static readonly UInt48 MaxValue = new(140737488355327);
@@ -34,6 +34,8 @@ public readonly struct UInt48
 
     public UInt48(byte[] bytes)
     {
+        ArgumentNullException.ThrowIfNull(bytes);
+
         if (bytes.Length != 6)
             throw new Exception($"Bytes are not 6! {bytes.Length}");
         m_b0 = bytes[0];
@@ -44,20 +46,60 @@ public readonly struct UInt48
         m_b5 = (byte)(bytes[5] & 0x7F);
     }
 
-    public static implicit operator UInt48(ulong value)
+    public static implicit operator UInt48(ulong value) => ToUInt48(value);
+
+    public static implicit operator ulong(UInt48 i) => ToUInt64(i);
+
+    public byte[] ToBytes()
     {
-        return new UInt48(value);
+        return [m_b0, m_b1, m_b2, m_b3, m_b4, m_b5];
     }
 
-    public static implicit operator ulong(UInt48 i)
+    public static UInt48 ToUInt48(ulong value) => new(value);
+
+    public static ulong ToUInt64(UInt48 i)
     {
         return (ulong)(i.m_b0 + (i.m_b1 << 8) + (i.m_b2 << 16) + ((long)i.m_b3 << 24) + ((long)i.m_b4 << 32) +
                      ((long)i.m_b5 << 40));
     }
 
-    public byte[] ToBytes()
+    public override bool Equals(object? obj)
     {
-        return [m_b0, m_b1, m_b2, m_b3, m_b4, m_b5];
+        if (obj is not Int48 int48)
+            return false;
+        return Equals(int48);
+    }
+
+    public override int GetHashCode()
+    {
+        return
+            m_b0.GetHashCode() +
+            m_b1.GetHashCode() +
+            m_b2.GetHashCode() +
+            m_b3.GetHashCode() +
+            m_b4.GetHashCode() +
+            m_b5.GetHashCode();
+    }
+
+    public static bool operator ==(UInt48 left, UInt48 right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(UInt48 left, UInt48 right)
+    {
+        return !(left == right);
+    }
+
+    public bool Equals(UInt48 other)
+    {
+        return
+            other.m_b0 == m_b0 &&
+            other.m_b1 == m_b1 &&
+            other.m_b2 == m_b2 &&
+            other.m_b3 == m_b3 &&
+            other.m_b4 == m_b4 &&
+            other.m_b5 == m_b5;
     }
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

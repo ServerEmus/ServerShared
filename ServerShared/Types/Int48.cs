@@ -5,7 +5,7 @@
 /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 [Serializable]
-public readonly struct Int48
+public readonly struct Int48 : IEquatable<Int48>
 {
     public static readonly Int48 Zero = new(0);
     public static readonly Int48 MaxValue = new(140737488355327);
@@ -37,6 +37,8 @@ public readonly struct Int48
 
     public Int48(byte[] bytes)
     {
+        ArgumentNullException.ThrowIfNull(bytes);
+
         if (bytes.Length != 6)
             throw new Exception($"Bytes are not 6! {bytes.Length}");
         m_b0 = bytes[0];
@@ -48,17 +50,9 @@ public readonly struct Int48
         m_sign = (byte)(bytes[5] >> 7 & 1);
     }
 
-    public static implicit operator Int48(long value)
-    {
-        return new Int48(value);
-    }
+    public static implicit operator Int48(long value) => ToInt48(value);
 
-    public static implicit operator long(Int48 i)
-    {
-        long value = i.m_b0 + (i.m_b1 << 8) + (i.m_b2 << 16) + ((long)i.m_b3 << 24) + ((long)i.m_b4 << 32) +
-                     ((long)i.m_b5 << 40);
-        return -((long)i.m_sign << 47) + value;
-    }
+    public static implicit operator long(Int48 i) => ToInt64(i);
 
     public byte[] ToBytes()
     {
@@ -66,5 +60,55 @@ public readonly struct Int48
     }
 
     public bool IsSigned => m_sign == 1;
+
+    public static Int48 ToInt48(long value) => new(value);
+
+    public static long ToInt64(Int48 i)
+    {
+        long value = i.m_b0 + (i.m_b1 << 8) + (i.m_b2 << 16) + ((long)i.m_b3 << 24) + ((long)i.m_b4 << 32) +
+             ((long)i.m_b5 << 40);
+        return -((long)i.m_sign << 47) + value;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not Int48 int48)
+            return false;
+        return Equals(int48);
+    }
+
+    public override int GetHashCode()
+    {
+        return
+            m_b0.GetHashCode() +
+            m_b1.GetHashCode() +
+            m_b2.GetHashCode() +
+            m_b3.GetHashCode() +
+            m_b4.GetHashCode() +
+            m_b5.GetHashCode() +
+            m_sign.GetHashCode();
+    }
+
+    public static bool operator ==(Int48 left, Int48 right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Int48 left, Int48 right)
+    {
+        return !(left == right);
+    }
+
+    public bool Equals(Int48 other)
+    {
+        return
+            other.m_b0 == m_b0 &&
+            other.m_b1 == m_b1 &&
+            other.m_b2 == m_b2 &&
+            other.m_b3 == m_b3 &&
+            other.m_b4 == m_b4 &&
+            other.m_b5 == m_b5 &&
+            other.m_sign == m_sign;
+    }
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

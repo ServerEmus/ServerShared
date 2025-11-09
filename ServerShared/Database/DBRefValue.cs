@@ -6,7 +6,7 @@
 /// <typeparam name="T"></typeparam>
 /// <param name="value">The value</param>
 /// <param name="con"></param>
-public class DBRefValue<T>(T value, DataBaseConnection<T> con) : IDisposable
+public sealed class DBRefValue<T>(T value, DataBaseConnection<T> con) : IDisposable
 {
     private T val = value;
     private readonly DataBaseConnection<T> dbcon = con;

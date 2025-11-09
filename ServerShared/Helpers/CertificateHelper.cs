@@ -40,6 +40,9 @@ public static class CertificateHelper
     /// <returns></returns>
     public static X509Certificate2 Create(string name, AsymmetricAlgorithm algorithm, HashAlgorithmName hashAlgorithm, X500DistinguishedNameBuilder nameBuilder, string password = DefaultCertPassword)
     {
+        ArgumentNullException.ThrowIfNull(algorithm);
+        ArgumentNullException.ThrowIfNull(nameBuilder);
+
         Span<byte> serialNumber = stackalloc byte[8];
         RandomNumberGenerator.Fill(serialNumber);
         var key = PublicKey.CreateFromSubjectPublicKeyInfo(algorithm.ExportSubjectPublicKeyInfo(), out _);
