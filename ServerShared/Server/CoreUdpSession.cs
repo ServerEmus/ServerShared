@@ -46,7 +46,7 @@ public class CoreUdpSession(EndPoint endPoint, CoreUdpServer server) : ISession
     /// </remarks>
     public virtual void Process(ReadOnlySpan<byte> bytes)
     {
-        OnBytesReceived?.Invoke(this, new(this, bytes.ToArray()));
+        OnBytesReceived?.Invoke(this, new(this, bytes));
     }
 
     /// <summary>

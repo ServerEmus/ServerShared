@@ -1,4 +1,5 @@
 ﻿using ModdableWebServer;
+using ModdableWebServer.EventArguments;
 using ModdableWebServer.Interfaces;
 using NetCoreServer;
 using Serilog;
@@ -7,7 +8,6 @@ using ServerShared.EventArguments;
 using ServerShared.Server;
 using System.Collections.ObjectModel;
 using System.Net.Security;
-using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
@@ -130,10 +130,12 @@ public static class ServerController
             serverModel.Server = new CoreSslUdpServer(Context, serverModel.Port);
         else
             serverModel.Server = new CoreUdpServer(serverModel.Port);
+
         if (serverModel.Server is IHttpServer server)
         {
             server.DoReturn404IfFail = false;
         }
+
         ServerEvents.ReceivedFailed += ServerEvents_ReceivedFailed;
         ServerEvents.SocketError += ServerEvents_SocketError;
         ServerEvents.ReceivedRequestError += ServerEvents_ReceivedRequestError;
@@ -143,19 +145,19 @@ public static class ServerController
         Log.Information("Server {name} started on {Port}!", serverModel.Name, serverModel.Port);
     }
 
-    private static void ServerEvents_ReceivedRequestError(IServer arg1, HttpRequest arg2, string arg3)
+    private static void ServerEvents_ReceivedRequestError(object? sender, ReceivedRequestErrorEventArgs args)
     {
-        Log.Error("RecvReqError! {ServerId} {ServerPort} {url}, {error}", arg1.Id, arg1.Port, arg2.Url, arg3);
+        Log.Error("RecvReqError! {ServerId} {ServerPort} {url}, {error}", args.Server.Id, args.Server.Port, args.Request.Url, args.Error);
     }
 
-    private static void ServerEvents_SocketError(IServer arg1, Exception? ex, SocketError arg2)
+    private static void ServerEvents_SocketError(object? sender, SocketErrorEventArgs args)
     {
-        Log.Error("OnSocketError! {ServerId} {ServerPort} {error} {ex}", arg1.Id, arg1.Port, arg2, ex);
+        Log.Error("OnSocketError! {ServerId} {ServerPort} {error} {ex}", args.Server.Id, args.Server.Port, args.Error, args.Exception);
     }
 
-    private static void ServerEvents_ReceivedFailed(IServer arg1, HttpRequest request)
+    private static void ServerEvents_ReceivedFailed(object? sender, ReceivedFailedEventArgs args)
     {
-        File.AppendAllText("REQUESTED.txt", $"{request.Method}\n{request.Url}\n{request.Body}\n{request}");
+        File.AppendAllText("REQUESTED.txt", $"{args.Request.Method}\n{args.Request.Url}\n{args.Request.Body}\n{args.Request}");
     }
 
     /// <summary>

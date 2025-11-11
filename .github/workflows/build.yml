@@ -18,6 +18,7 @@ jobs:
   build:
     permissions:
       packages: read
+      contents: read
     uses: ServerEmus/workflows/.github/workflows/build.yml@main
     with:
       ProjName: ServerShared

@@ -7,7 +7,7 @@ namespace ServerShared.EventArguments;
 /// </summary>
 /// <param name="session">The session the data received from.</param>
 /// <param name="data">The bytes that received.</param>
-public class SessionBytesReceivedEventArgs(ISession session, byte[] data) : EventArgs
+public class SessionBytesReceivedEventArgs(ISession session, ReadOnlySpan<byte> data) : EventArgs
 {
     /// <summary>
     /// The session the data received from.
@@ -17,5 +17,5 @@ public class SessionBytesReceivedEventArgs(ISession session, byte[] data) : Even
     /// <summary>
     /// The bytes that received.
     /// </summary>
-    public ArraySegment<byte> Data = data;
+    public ArraySegment<byte> Data = data.ToArray();
 }

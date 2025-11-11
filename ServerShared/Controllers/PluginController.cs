@@ -44,7 +44,7 @@ public static class PluginController
             string pdbFile = file.Replace("dll", "pdb", StringComparison.InvariantCultureIgnoreCase);
             if (File.Exists(pdbFile))
             {
-                pdbStream = File.OpenRead(file);
+                pdbStream = File.OpenRead(pdbFile);
             }    
 
             var assemlby = MainLoadContext.LoadFromStream(dllStream, pdbStream);
@@ -52,6 +52,7 @@ public static class PluginController
             pdbStream?.Dispose();
             if (assemlby == null)
                 continue;
+
             Log.Information("Plugin {asm} loaded!", assemlby.GetName().Name);
             LoadedAssemblies.Add(assemlby);
         }
