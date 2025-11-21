@@ -6,7 +6,6 @@ using Serilog;
 using ServerShared.CommonModels;
 using ServerShared.EventArguments;
 using ServerShared.Server;
-using System.Collections.ObjectModel;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -30,7 +29,7 @@ public static class ServerController
     /// <summary>
     /// Collection of certificates to use on websites.
     /// </summary>
-    public static Collection<X509Certificate2> Certificates { get; private set; } = [];
+    public static List<X509Certificate2> Certificates { get; private set; } = [];
 
     /// <summary>
     /// Action that runs when server started.
@@ -106,7 +105,7 @@ public static class ServerController
     /// Starting the servers.
     /// </summary>
     /// <param name="servers">A list of models for server creation / starting.</param>
-    public static void Start(Collection<ServerModel> servers)
+    public static void Start(IEnumerable<ServerModel> servers)
     {
         ArgumentNullException.ThrowIfNull(servers);
 
@@ -132,14 +131,14 @@ public static class ServerController
             serverModel.Server = new CoreUdpServer(serverModel.Port);
 
         if (serverModel.Server is IHttpServer server)
-        {
             server.DoReturn404IfFail = false;
-        }
 
         ServerEvents.ReceivedFailed += ServerEvents_ReceivedFailed;
         ServerEvents.SocketError += ServerEvents_SocketError;
         ServerEvents.ReceivedRequestError += ServerEvents_ReceivedRequestError;
+
         serverModel.Server.Start();
+
         InternalServers.Add(serverModel);
         OnServerStarted?.Invoke(null, new(serverModel));
         Log.Information("Server {name} started on {Port}!", serverModel.Name, serverModel.Port);
@@ -166,7 +165,20 @@ public static class ServerController
     /// <param name="clear">Should remove from internal list.</param>
     public static void Stop(bool clear = false)
     {
-        foreach (ServerModel serverModel in InternalServers.ToList())
+        // We have to create a new list just for it because otherwise we try to remove from original.
+        Stop([.. Servers], clear);
+    }
+
+    /// <summary>
+    /// Stopping a desired server.
+    /// </summary>
+    /// <param name="models">The collection of server model to stop.</param>
+    /// <param name="clear">Should remove from internal list.</param>
+    public static void Stop(IEnumerable<ServerModel> models, bool clear = false)
+    {
+        ArgumentNullException.ThrowIfNull(models);
+
+        foreach (ServerModel serverModel in models)
             Stop(serverModel, clear);
     }
 

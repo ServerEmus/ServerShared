@@ -17,5 +17,5 @@ public class SessionBytesReceivedEventArgs(ISession session, ReadOnlySpan<byte> 
     /// <summary>
     /// The bytes that received.
     /// </summary>
-    public ArraySegment<byte> Data = data.ToArray();
+    public Memory<byte> Data = data.ToArray();
 }

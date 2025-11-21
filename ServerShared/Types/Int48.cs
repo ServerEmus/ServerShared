@@ -35,12 +35,11 @@ public readonly struct Int48 : IEquatable<Int48>
         m_sign = (byte)(b5 >> 7 & 1);
     }
 
-    public Int48(byte[] bytes)
+    public Int48(Span<byte> bytes)
     {
-        ArgumentNullException.ThrowIfNull(bytes);
-
-        if (bytes.Length != 6)
+        if (bytes.Length < 6)
             throw new Exception($"Bytes are not 6! {bytes.Length}");
+
         m_b0 = bytes[0];
         m_b1 = bytes[1];
         m_b2 = bytes[2];

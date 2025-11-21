@@ -29,12 +29,11 @@ public readonly struct Int24 : IEquatable<Int24>
         m_sign = (byte)(b2 >> 7 & 1);
     }
 
-    public Int24(byte[] bytes)
+    public Int24(Span<byte> bytes)
     {
-        ArgumentNullException.ThrowIfNull(bytes);
-
-        if (bytes.Length != 3)
+        if (bytes.Length < 3)
             throw new Exception($"Bytes are not 3! {bytes.Length}");
+
         m_b0 = bytes[0];
         m_b1 = bytes[1];
         m_b2 = (byte)(bytes[2] & 0x7F);

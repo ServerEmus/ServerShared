@@ -7,7 +7,7 @@
 [*.{cs,vb}]
 
 
-dotnet_diagnostic.CA1002.severity = warning
+dotnet_diagnostic.CA1002.severity = none
 
 dotnet_diagnostic.CA1003.severity = warning
 

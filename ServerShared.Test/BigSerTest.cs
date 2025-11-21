@@ -2,13 +2,13 @@
 
 namespace ServerShared.Test;
 
-internal class BigSer : IBigSerializable
+internal class BigSer : ICustomSerializable
 {
     public string StrData = string.Empty;
     public int Other;
     public long LongTest;
     public DateTimeOffset Time;
-    public void Deserialize(BinaryReaderBig reader)
+    public void Deserialize(EndiannessReader reader)
     {
         StrData = reader.ReadString();
         Other = reader.ReadInt32();
@@ -16,7 +16,7 @@ internal class BigSer : IBigSerializable
         Time = DateTimeOffset.FromFileTime(reader.ReadInt64());
     }
 
-    public void Serialize(BinaryWriterBig writer)
+    public void Serialize(EndiannessWriter writer)
     {
         writer.Write(StrData);
         writer.Write(Other);
@@ -25,13 +25,13 @@ internal class BigSer : IBigSerializable
     }
 }
 
-internal class BigSer2 : IBigInstanceSerializable<BigSer2>
+internal class BigSer2 : ICustomInstanceSerializable<BigSer2>
 {
     public string StrData = string.Empty;
     public int Other;
     public long LongTest;
     public DateTimeOffset Time;
-    public void Deserialize(BinaryReaderBig reader)
+    public void Deserialize(EndiannessReader reader)
     {
         StrData = reader.ReadString();
         Other = reader.ReadInt32();
@@ -39,14 +39,15 @@ internal class BigSer2 : IBigInstanceSerializable<BigSer2>
         Time = DateTimeOffset.FromFileTime(reader.ReadInt64());
     }
 
-    public void Serialize(BinaryWriterBig writer)
+    public void Serialize(EndiannessWriter writer)
     {
         writer.Write(StrData);
         writer.Write(Other);
         writer.Write(LongTest);
         writer.Write(Time.ToFileTime());
     }
-    public static BigSer2? Parse(BinaryReaderBig reader)
+
+    public static BigSer2? Parse(EndiannessReader reader)
     {
         return new()
         { 
@@ -72,15 +73,62 @@ public class BigSerTest
         };
 
         using MemoryStream writeStream = new();
-        using BinaryWriterBig writerBig = new(writeStream);
+        using EndiannessWriter writerBig = new(writeStream, Endianness.Big);
         writerBig.WriteSerializable(ser);
         using MemoryStream readerStream = new(writeStream.ToArray());
-        using BinaryReaderBig readerBig = new(readerStream);
+        using EndiannessReader readerBig = new(readerStream, Endianness.Big);
         BigSer deser = readerBig.ReadSerializable<BigSer>();
         Assert.Equal(ser.StrData, deser.StrData);
         Assert.Equal(ser.LongTest, deser.LongTest);
         Assert.Equal(ser.Other, deser.Other);
         Assert.Equal(ser.Time, deser.Time);
+    }
+
+    [Fact]
+    public void Test_LittleSer()
+    {
+        BigSer ser = new()
+        {
+            StrData = "AAAAAAAAAAAA",
+            LongTest = 555,
+            Other = 6456,
+            Time = DateTimeOffset.UtcNow,
+        };
+
+        using MemoryStream writeStream = new();
+        using EndiannessWriter writerBig = new(writeStream, Endianness.Little);
+        writerBig.WriteSerializable(ser);
+        using MemoryStream readerStream = new(writeStream.ToArray());
+        using EndiannessReader readerBig = new(readerStream, Endianness.Little);
+        BigSer deser = readerBig.ReadSerializable<BigSer>();
+        Assert.Equal(ser.StrData, deser.StrData);
+        Assert.Equal(ser.LongTest, deser.LongTest);
+        Assert.Equal(ser.Other, deser.Other);
+        Assert.Equal(ser.Time, deser.Time);
+    }
+
+
+    [Fact]
+    public void Test_CommonSer()
+    {
+        BigSer ser = new()
+        {
+            StrData = "AAAAAAAAAAAA",
+            LongTest = 555,
+            Other = 6456,
+            Time = DateTimeOffset.UtcNow,
+        };
+
+        using MemoryStream writeStream = new();
+        using EndiannessWriter writerBig = new(writeStream, Endianness.Little);
+        writerBig.WriteSerializable(ser);
+        using MemoryStream readerStream = new(writeStream.ToArray());
+        using EndiannessReader readerBig = new(readerStream, Endianness.Big);
+        BigSer deser = readerBig.ReadSerializable<BigSer>();
+        Assert.Equal(ser.StrData, deser.StrData);
+        Assert.NotEqual(ser.LongTest, deser.LongTest);
+        Assert.NotEqual(ser.Other, deser.Other);
+        Assert.NotEqual(ser.Time, deser.Time);
     }
 
     [Fact]
