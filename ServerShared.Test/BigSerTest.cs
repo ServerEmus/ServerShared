@@ -120,15 +120,15 @@ public class BigSerTest
         };
 
         using MemoryStream writeStream = new();
-        using EndiannessWriter writerBig = new(writeStream, Endianness.Little);
+        using EndiannessWriter writerBig = new(writeStream, Endianness.Default);
         writerBig.WriteSerializable(ser);
         using MemoryStream readerStream = new(writeStream.ToArray());
-        using EndiannessReader readerBig = new(readerStream, Endianness.Big);
+        using EndiannessReader readerBig = new(readerStream, Endianness.Default);
         BigSer deser = readerBig.ReadSerializable<BigSer>();
         Assert.Equal(ser.StrData, deser.StrData);
-        Assert.NotEqual(ser.LongTest, deser.LongTest);
-        Assert.NotEqual(ser.Other, deser.Other);
-        Assert.NotEqual(ser.Time, deser.Time);
+        Assert.Equal(ser.LongTest, deser.LongTest);
+        Assert.Equal(ser.Other, deser.Other);
+        Assert.Equal(ser.Time, deser.Time);
     }
 
     [Fact]

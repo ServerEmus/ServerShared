@@ -2,7 +2,7 @@
 
 namespace ServerShared.Test;
 
-public class Types
+public class TestTypes
 {
     [Fact]
     public void TestInt24()
