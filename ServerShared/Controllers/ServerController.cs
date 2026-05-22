@@ -9,6 +9,7 @@ using ServerShared.Server;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 
 namespace ServerShared.Controllers;
 
@@ -58,6 +59,11 @@ public static class ServerController
         return true;
     }
 
+    private static string WildCardToRegular(string value)
+    {
+        return "^" + Regex.Escape(value).Replace("\\*", ".*", StringComparison.InvariantCultureIgnoreCase) + "$";
+    }
+
     private static X509Certificate CertificateSelect(object sender, string? hostName)
     {
         if (string.IsNullOrEmpty(hostName))
@@ -65,10 +71,12 @@ public static class ServerController
             Log.Error("We cannot recognise HostName fallback to MainCert");
             if (MainCertificate != null)
                 return MainCertificate;
+
             ArgumentNullException.ThrowIfNull(MainCertificate, nameof(MainCertificate));
 #pragma warning disable CS8603 // Possible null reference return.
             return null;
 #pragma warning restore CS8603 // Possible null reference return.
+
         }
         Log.Debug("Certificate search and select for HostName: {hostname}", hostName);
         foreach (var cert in Certificates)
@@ -79,11 +87,20 @@ public static class ServerController
                 if (extension is not X509SubjectAlternativeNameExtension alternativeNameExtension)
                     continue;
 
-                foreach (var dns in alternativeNameExtension.EnumerateDnsNames())
+                foreach (string dns in alternativeNameExtension.EnumerateDnsNames())
                 {
                     Log.Debug("Cert DNS name: {dns}", dns);
-                    if (!dns.Contains(hostName, StringComparison.InvariantCultureIgnoreCase))
-                        continue;
+                    
+                    if (!dns.Contains('*', StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (!dns.Contains(hostName, StringComparison.InvariantCultureIgnoreCase))
+                            continue;
+                    }
+                    else
+                    {
+                        if (!Regex.IsMatch(hostName, WildCardToRegular(dns)))
+                            continue;
+                    }
 
                     Log.Debug("Dns contain hostname, returning cert!");
                     return cert;
@@ -93,7 +110,9 @@ public static class ServerController
         Log.Error("Certificate not found for {hostname} fallback to MainCert", hostName);
         if (MainCertificate != null)
             return MainCertificate;
+
         ArgumentNullException.ThrowIfNull(MainCertificate, nameof(MainCertificate));
+
 #pragma warning disable CS8603 // Possible null reference return.
         return null;
 #pragma warning restore CS8603 // Possible null reference return.
@@ -193,6 +212,7 @@ public static class ServerController
 
         OnServerStopped?.Invoke(null, new(model));
         model.Server?.Stop();
+
         if (clear)
             InternalServers.Remove(model);
 
