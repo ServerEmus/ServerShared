@@ -1,4 +1,5 @@
-﻿using ModdableWebServer.Sessions;
+using ModdableWebServer.Sessions;
+using NetCoreServer;
 using ServerShared.EventArguments;
 
 namespace ServerShared.Server;
@@ -26,6 +27,10 @@ public class CoreSecureSession(CoreSecureServer server) : WSS_Session(server)
     /// </summary>
     public bool IsWebSession { get; protected set; }
 
+    /// <summary>
+    /// Whether <see cref="IsWebSession"/> has been decided for this connection yet.
+    /// </summary>
+    private bool _classified;
 
     /// <inheritdoc/>
     protected override void OnConnected()
@@ -36,9 +41,41 @@ public class CoreSecureSession(CoreSecureServer server) : WSS_Session(server)
         => OnDisconnectedEvent?.Invoke(this, new(this, Id));
 
     /// <inheritdoc/>
+    protected override void OnReceivedRequestHeader(HttpRequest request)
+    {
+        for (int i = 0; i < request.Headers; i++)
+        {
+            var (name, value) = request.Header(i);
+            if (string.Equals(name, "Expect", StringComparison.OrdinalIgnoreCase)
+                && value.Contains("100-continue", StringComparison.OrdinalIgnoreCase))
+            {
+                Send("HTTP/1.1 100 Continue\r\n\r\n");
+                break;
+            }
+        }
+
+        base.OnReceivedRequestHeader(request);
+    }
+
+    /// <inheritdoc/>
     protected override void OnReceived(byte[] buffer, long offset, long size)
     {
+        if (_classified)
+        {
+            if (IsWebSession)
+            {
+                base.OnReceived(buffer, offset, size);
+            }
+            else
+            {
+                var contBuf = buffer.Take((int)size).Skip((int)offset).ToArray();
+                OnBytesReceived?.Invoke(this, new(this, contBuf));
+            }
+            return;
+        }
+
         var buf = buffer.Take((int)size).Skip((int)offset).ToArray();
+        _classified = true;
         if (char.IsAsciiLetterUpper((char)buf[0]) || this.WebSocket.WsHandshaked)
         {
             IsWebSession = true;
